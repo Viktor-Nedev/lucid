@@ -54,12 +54,15 @@ the trigger logic changes.
 Fetch/XHR entry that appears here is coming from Lucid and is a bug. If one fires, stop and fix
 that before continuing — idle-time and hover-triggered calls will drain the key during the demo.
 
-5. Now tab through all five fields in the signup form and watch the count.
+5. Now trigger the form explanation on the signup form and watch the count.
 
-   This one is a deliberate user action rather than idle time, because behavior 6 fires on tab.
-   Whether it should cost anything depends on how field inference is implemented. **If it is
-   AI-backed, tabbing through a twelve-field checkout form fires twelve calls** — worth knowing
-   before anyone demos it live. Record what you observe either way.
+   Field inference **is** AI-backed — it routes through `ai.inferFieldPurpose` to the provider.
+   But the contract batches it: one call carries every field on the form and the response comes
+   back correlated by id, with an optional cache key. So expect **roughly one request per form on
+   a cache miss, and zero on a hit** — not one request per field.
+
+   Confirm that. A build that fires per-field instead of per-form turns a twelve-field checkout
+   into twelve calls, and that is the failure mode worth catching before anyone demos it live.
 
 6. Press `Alt`+`Shift`+`R` on the selection. **Still zero** — speech synthesis is local and read
    selection is specified to work with no API key at all.
@@ -177,7 +180,9 @@ The treatment diagram in Figure 2 should also pick up an overlay, since it is a 
 tree: all five expose an empty accessible name. Everything Lucid says here has to be inferred from
 surrounding DOM.
 
-Tab through them in order and check what is announced:
+The trigger is still being wired up, so check how it actually fires in your build — the landed
+contract scans a whole form at once and presents the results together, which may or may not end up
+driven by tab. Either way, these are the inferences to check:
 
 | # | Field | Inferable from | Expected |
 |---|---|---|---|
@@ -186,6 +191,11 @@ Tab through them in order and check what is announced:
 | 3 | Service address | caption plus hint text | "the address your water is supplied to" |
 | 4 | Account number | caption plus "ten digits, printed on your bill" | "account number, ten digits" |
 | 5 | *(the narrow box below the grid)* | **nothing** — no caption, no hint, no placeholder | see below |
+
+**Check the request payload while you are here.** Open the request in DevTools and confirm it
+carries field *metadata* only — labels, names, types, nearby text. If the value a user has typed
+into a field appears anywhere in the body, stop and report it: a form-explaining feature that
+transmits a half-typed card number is worse than no feature at all.
 
 Field 5 is the honest stretch case. There is no adjacent text at all; the only signals are that it
 sits directly under an address block and is styled narrow. "Apartment or unit number" is a good
