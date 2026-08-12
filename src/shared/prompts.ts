@@ -68,6 +68,8 @@ The first column of the table is the category or x-axis value; one further colum
 
 In the notes, call out what a reader would notice at a glance: the overall direction, the largest and smallest points, any crossover between series, any break in the pattern. Skip anything the numbers already make obvious.
 
+Name the peak and the trough explicitly, with the category they fall in - "peaks at 16.2 in July", not "reaches a maximum mid-year". If the chart draws a reference, target, limit or threshold line, say whether the data crosses it and where; a crossing is usually the reason the chart was published, and it belongs in the summary rather than only in the notes.
+
 If the image is not a chart, or is too low-resolution to read values from, say so in the summary and return empty columns and rows rather than guessing.`;
 
 export function chartExtractionUser(contextText: string): string {
