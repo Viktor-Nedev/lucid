@@ -7,11 +7,12 @@
   single thin hotkey strip at the top, which scrolls away on the first swipe.
 
   What each behavior has to work with, in DOM order:
-    Alt+R  any prose on the page
-    Alt+S  the two compliance paragraphs and the determination summary - long,
-           nested, jargon-heavy, genuinely hard to read
-    Alt+P  whole document, DOM order is clean and matches visual order
-    Alt+E  the reservoir illustration (img, no alt) and the treatment diagram
+    Alt+Shift+R  any prose on the page
+    Alt+Shift+S  the two compliance paragraphs - long, nested, jargon-heavy,
+                 genuinely hard to read
+    Alt+Shift+L  reading mode over the whole document; DOM order is clean and
+                 matches visual order
+    Alt+Shift+E  the reservoir illustration (img, no alt) and the treatment diagram
     #5     the lead-concentration <canvas> - real trend with a peak and recovery,
            and the multi-node treatment <svg>
     #6     the alerts form - no <label> anywhere, purposes inferable from
@@ -146,10 +147,10 @@
 <!-- Presenter legend. Scrolls out of frame as soon as the page moves. -->
 <div class="hotkeys">
   <strong>Lucid</strong>
-  <span><kbd>Alt</kbd><kbd>R</kbd>read selection</span>
-  <span><kbd>Alt</kbd><kbd>S</kbd>simplify</span>
-  <span><kbd>Alt</kbd><kbd>E</kbd>describe visual</span>
-  <span><kbd>Alt</kbd><kbd>P</kbd>read page</span>
+  <span><kbd>Alt</kbd><kbd>Shift</kbd><kbd>R</kbd>read selection</span>
+  <span><kbd>Alt</kbd><kbd>Shift</kbd><kbd>L</kbd>reading mode</span>
+  <span><kbd>Alt</kbd><kbd>Shift</kbd><kbd>E</kbd>explain</span>
+  <span><kbd>Alt</kbd><kbd>Shift</kbd><kbd>S</kbd>simplify</span>
 </div>
 
 <header class="site">

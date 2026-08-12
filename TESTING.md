@@ -44,23 +44,30 @@ the trigger logic changes.
    Watch both. Lucid can be pointed at either provider, and a request to the one you are not
    filtering on is still a request you are paying for.
 3. Clear the log.
-4. Now use the page like an ordinary reader for about 30 seconds:
+4. Use the page passively for about 30 seconds, without invoking anything:
    - scroll from top to bottom,
    - hover over the lead chart and the treatment diagram,
-   - click into and tab through all five fields in the signup form,
-   - select a paragraph of text and leave it selected.
+   - select a paragraph of text and leave it selected,
+   - then stop touching it and let it sit idle.
 
 **Expected: zero outbound AI requests.** The page itself makes no network calls at all, so any
-Fetch/XHR entry that appears is coming from Lucid and is a bug.
+Fetch/XHR entry that appears here is coming from Lucid and is a bug. If one fires, stop and fix
+that before continuing — idle-time and hover-triggered calls will drain the key during the demo.
 
-5. Press `Alt`+`R` on the selection. **Still zero** — speech synthesis is local and this behavior
-   is specified to work with no API key.
-6. Press `Alt`+`S` on the selection. **Exactly one** request should fire.
-7. Press `Alt`+`S` again on the same unchanged selection. Note what happens: a second request
-   means there is no caching, which is worth knowing before the demo but is not itself a failure.
+5. Now tab through all five fields in the signup form and watch the count.
 
-If a request fires during step 4, stop and fix that before continuing. Idle-time or
-hover-triggered calls will drain the key during the demo.
+   This one is a deliberate user action rather than idle time, because behavior 6 fires on tab.
+   Whether it should cost anything depends on how field inference is implemented. **If it is
+   AI-backed, tabbing through a twelve-field checkout form fires twelve calls** — worth knowing
+   before anyone demos it live. Record what you observe either way.
+
+6. Press `Alt`+`Shift`+`R` on the selection. **Still zero** — speech synthesis is local and read
+   selection is specified to work with no API key at all.
+7. Press `Alt`+`Shift`+`L` for reading mode, then stop it. **Still zero**, for the same reason.
+8. Press `Alt`+`Shift`+`S` on the selection. **Exactly one** request should fire.
+9. Press `Alt`+`Shift`+`S` again on the same unchanged selection. Note what happens: a second
+   request means there is no caching, which is worth knowing before the demo but is not itself a
+   failure.
 
 > Anything reaching either host is billable. If you see traffic to a host that is on neither
 > list, find out what it is before demoing.
@@ -72,24 +79,25 @@ hover-triggered calls will drain the key during the demo.
 Each one lists steps on `demo/index.html`, then public pages that stress it harder. The demo page
 is controlled and predictable; the real-world URLs are where things actually break.
 
-### 1. Read selection aloud — `Alt`+`R`
+### 1. Read selection aloud — `Alt`+`Shift`+`R`
 
 **On the demo page.** Select the opening paragraph under the headline ("Harbor Bay draws its water
-from the Calder Reservoir…") and press `Alt`+`R`.
+from the Calder Reservoir…") and press `Alt`+`Shift`+`R`.
 
 Expect speech to start within about a second and to read only the selected text, stopping at the
 end of the selection. Then try: selecting across two paragraphs, selecting a single word,
-selecting a table cell, and pressing `Alt`+`R` with nothing selected at all — the last should fail
+selecting a table cell, and pressing `Alt`+`Shift`+`R` with nothing selected at all — the last should fail
 quietly rather than reading the whole page.
 
-This must work with no API key configured. Test it with the key removed.
+This must work with no API key configured. Test it with the key removed — read selection and
+reading mode are both specified to work in full without one.
 
 **In the wild:**
 - <https://en.wikipedia.org/wiki/General_relativity> — long paragraphs, inline math, footnote
   markers. Check whether superscript reference numbers get read out as noise mid-sentence.
 - <https://www.law.cornell.edu/uscode/text/26/61> — nested statutory lists, heavy cross-references.
 
-### 2. Describe a visual — `Alt`+`E`
+### 2. Describe a visual — `Alt`+`Shift`+`E`
 
 **On the demo page.** There are two targets:
 
@@ -98,7 +106,7 @@ This must work with no API key configured. Test it with the key removed.
 - **Figure 2**, the treatment diagram. Inline SVG marked `role="presentation"`, so it is invisible
   to assistive tech even though it carries the whole process flow.
 
-Put each in view and press `Alt`+`E`. Expect a spoken description of what is actually depicted —
+Put each in view and press `Alt`+`Shift`+`E`. Expect a spoken description of what is actually depicted —
 for Figure 2 that means the sequence of treatment stages, not "a diagram with boxes and arrows".
 
 **In the wild:**
@@ -106,9 +114,9 @@ for Figure 2 that means the sequence of treatment stages, not "a diagram with bo
 - <https://ourworldindata.org/grapher/life-expectancy> — a large interactive SVG chart that
   redraws on interaction. Check whether a description captured before interaction goes stale.
 
-### 3. Read the whole page — `Alt`+`P`
+### 3. Reading mode — `Alt`+`Shift`+`L`
 
-**On the demo page.** Press `Alt`+`P` at the top and let it run.
+**On the demo page.** Press `Alt`+`Shift`+`L` at the top and let it run.
 
 Expect reading in DOM order with each word highlighted as it is spoken. On this page DOM order and
 visual order match deliberately, so the highlight should track down the page without jumping. Watch
@@ -121,11 +129,11 @@ Also confirm you can stop it. A read-aloud you cannot interrupt is worse than no
 - <https://en.wikipedia.org/wiki/General_relativity> — infoboxes and navboxes sit early in the DOM
   but late in the visual layout, so the highlight will jump. Watch how badly.
 
-### 4. Simplify dense text — `Alt`+`S`
+### 4. Simplify dense text — `Alt`+`Shift`+`S`
 
 **On the demo page.** Under "Regulatory compliance" there are two paragraphs written to be
 unreadable — a single 120-word sentence about ninetieth-percentile lead compliance, and a second
-about primacy-agency determination deadlines. Select either and press `Alt`+`S`.
+about primacy-agency determination deadlines. Select either and press `Alt`+`Shift`+`S`.
 
 Expect a floating panel with a plain-language rewrite. Two things to check carefully:
 
@@ -200,10 +208,13 @@ that it wants a house number followed by a street name. Restating the error code
 
 ### 7. Voice commands
 
-**On the demo page.** Press the wake hotkey, then say "read this", "explain this", "simplify this"
-with something selected or in view.
+**On the demo page.** Wake Lucid, then say "read this", "explain this", "simplify this" with
+something selected or in view.
 
-> Wake hotkey: **TODO** — not yet assigned. Fill in once it is.
+Voice wake has **no default key**, and neither does the panel toggle. Chrome honours only four
+suggested shortcuts per extension and Lucid spends all four on the behaviors above, so both are
+reached from the toolbar button or from a key you bind yourself at
+`chrome://extensions/shortcuts`. Test both routes.
 
 Worth checking: what happens when the mic permission has not been granted yet, when it is denied,
 and when a command is not recognised. Also confirm the mic is not listening before the wake hotkey
@@ -218,7 +229,7 @@ for manual testing only; they are not in the video.
 
 **`shop.html`** — a product grid. Four product images ranging from no `alt` at all to unhelpful
 `alt="image123.jpg"`, an unlabeled search box, "Add to cart" controls built from `<div>`s that
-cannot be reached by keyboard, and prices at roughly 1.9:1 contrast. Good for `Alt`+`E` across
+cannot be reached by keyboard, and prices at roughly 1.9:1 contrast. Good for `Alt`+`Shift`+`E` across
 several images in a row, and for behavior 6 on a single isolated input.
 
 **`signup-form.html`** — the awkward form cases. Placeholder-only labels, a `<label for>` pointing
@@ -239,10 +250,10 @@ description or narration on every update.
 Before recording or demoing, run this end to end on `demo/index.html`:
 
 - [ ] Zero AI requests on idle (section 0)
-- [ ] `Alt`+`R` reads a selection, with the API key removed
-- [ ] `Alt`+`E` describes Figure 1 and Figure 2
-- [ ] `Alt`+`P` reads in order, highlight tracks, and can be stopped
-- [ ] `Alt`+`S` rewrites a compliance paragraph, page unmodified underneath
+- [ ] With no API key at all: read selection and reading mode still work in full
+- [ ] `Alt`+`Shift`+`E` describes Figure 1 and Figure 2
+- [ ] `Alt`+`Shift`+`L` reads in order, highlight tracks, and can be stopped
+- [ ] `Alt`+`Shift`+`S` rewrites a compliance paragraph, page unmodified underneath
 - [ ] Chart overlay names the July peak and the action-level crossing
 - [ ] All five form fields announce something sensible on tab
 - [ ] `E_ADDR_FMT` becomes plain language
@@ -255,10 +266,10 @@ Before recording or demoing, run this end to end on `demo/index.html`:
 
 | Behavior | Status | Notes |
 |---|---|---|
-| 1. `Alt`+`R` read selection | _TODO_ | |
-| 2. `Alt`+`E` describe visual | _TODO_ | |
-| 3. `Alt`+`P` read page | _TODO_ | |
-| 4. `Alt`+`S` simplify | _TODO_ | |
+| 1. `Alt`+`Shift`+`R` read selection | _TODO_ | |
+| 2. `Alt`+`Shift`+`E` describe visual | _TODO_ | |
+| 3. `Alt`+`Shift`+`L` reading mode | _TODO_ | |
+| 4. `Alt`+`Shift`+`S` simplify | _TODO_ | |
 | 5. Chart trend narration | _TODO_ | |
 | 6. Unlabeled field help | _TODO_ | |
 | 7. Voice commands | _TODO_ | |

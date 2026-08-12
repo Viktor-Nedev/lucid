@@ -61,18 +61,21 @@ It never modifies the page it is running on.
 
 ### Reading
 
-**Select text, press `Alt`+`R`** — reads the selection aloud. This one works with no API key.
+**Select text, press `Alt`+`Shift`+`R`** — reads the selection aloud.
 
-**Press `Alt`+`P`** — reads the whole page aloud in DOM order, highlighting each word as it is
-spoken so a sighted user with a reading difficulty can follow along.
+**Press `Alt`+`Shift`+`L`** — reading mode. Reads the whole page aloud in DOM order,
+highlighting each word as it is spoken so a sighted user with a reading difficulty can follow
+along.
+
+Neither of these needs an API key. See [Working without a key](#working-without-a-key).
 
 ### Understanding
 
-**Select dense text, press `Alt`+`S`** — rewrites it in plain language and shows the result in a
-floating panel. The original page is left exactly as it was.
+**Select dense text, press `Alt`+`Shift`+`S`** — rewrites it in plain language and shows the
+result in a floating panel. The original page is left exactly as it was.
 
-**Press `Alt`+`E` with something visual in view** — screenshots that region, describes it with AI,
-and speaks the description. This is aimed at content a screen reader passes over in silence:
+**Press `Alt`+`Shift`+`E` with something visual in view** — screenshots that region, describes
+it with AI, and speaks the description. This is aimed at content a screen reader passes over in silence:
 canvas charts, complex SVGs, images with no alt text.
 
 **Charts get a clickable icon overlay** — Lucid marks canvas charts and complex SVGs with a small
@@ -87,12 +90,31 @@ fires, it reads the error in plain language and suggests what to do about it.
 
 ### Voice
 
-**Press the wake hotkey, then speak** — "read this", "explain this", "simplify this".
+**Wake Lucid, then speak** — "read this", "explain this", "simplify this".
 
-> Wake hotkey: **TODO**, not yet assigned.
+### Keyboard shortcuts
 
-> API key setup: **TODO**. `Alt`+`R` works without one; the AI-backed behaviors need a key, and
-> the configuration flow is not yet documented here.
+| Shortcut | Behavior |
+|---|---|
+| `Alt`+`Shift`+`R` | Read selection |
+| `Alt`+`Shift`+`L` | Reading mode |
+| `Alt`+`Shift`+`E` | Explain |
+| `Alt`+`Shift`+`S` | Simplify |
+
+Voice wake and the panel toggle have no default key. Chrome honours only four suggested shortcuts
+per extension, and Lucid spends all four on the behaviors above. Both are reached from the toolbar
+button, or you can bind your own keys at `chrome://extensions/shortcuts`.
+
+### Working without a key
+
+**Read selection and Reading Mode work in full with no API key at all.** Speech synthesis is local
+to the browser, so both are live the moment you install the extension and never touch the network.
+
+Only the AI-backed behaviors call out to a provider and need a key. Lucid degrades gracefully
+rather than refusing to start: with nothing configured it is still a complete read-aloud tool, and
+the AI behaviors light up when you add a key.
+
+> API key setup flow: **TODO** — not yet documented here.
 
 ## Feature status
 
@@ -143,7 +165,7 @@ See [TESTING.md](TESTING.md) for what to click and what should happen.
 
 | Path | Owner | Contents |
 |---|---|---|
-| `demo/` | fixtures | Demo pages and the launcher |
+| `demo/` | fixtures | Demo page and test fixtures |
 | `README.md` | fixtures | This file |
 | `TESTING.md` | fixtures | Manual test walkthrough |
 | `ARCHITECTURE.md` | core | Extension internals |
