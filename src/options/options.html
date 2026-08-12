@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Lucid settings</title>
+    <style>
+      :root {
+        --bg: #ffffff;
+        --fg: #14161a;
+        --muted: #5b6270;
+        --border: #d5d9e0;
+        --accent: #1e5fbf;
+        --accent-fg: #ffffff;
+        color-scheme: light dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #16181d;
+          --fg: #f2f4f8;
+          --muted: #a4acbb;
+          --border: #343a45;
+          --accent: #6aa5ff;
+          --accent-fg: #0b0d11;
+        }
+      }
+      @media (forced-colors: active) {
+        :root {
+          --bg: Canvas;
+          --fg: CanvasText;
+          --muted: CanvasText;
+          --border: CanvasText;
+          --accent: Highlight;
+          --accent-fg: HighlightText;
+        }
+      }
+
+      body {
+        margin: 0 auto;
+        padding: 32px 24px 64px;
+        max-width: 720px;
+        background: var(--bg);
+        color: var(--fg);
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      h1 { font-size: 1.5rem; margin: 0 0 4px; }
+      .lede { margin: 0 0 32px; color: var(--muted); }
+
+      fieldset {
+        margin: 0 0 24px;
+        padding: 16px 20px 20px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+      legend { padding: 0 6px; font-weight: 600; }
+
+      .field { margin-top: 16px; }
+      .field:first-of-type { margin-top: 4px; }
+      label { display: block; font-weight: 500; margin-bottom: 4px; }
+      .help { margin: 4px 0 0; font-size: 0.875rem; color: var(--muted); }
+      .help a { color: var(--accent); }
+
+      input[type="text"], input[type="password"], select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 9px 11px;
+        font: inherit;
+        font-size: 0.95rem;
+        color: var(--fg);
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+      }
+      input[type="range"] { width: 100%; }
+      :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+      .row { display: flex; align-items: center; gap: 10px; }
+      .row input[type="checkbox"] { width: 18px; height: 18px; margin: 0; flex: none; }
+      .row label { margin: 0; font-weight: 400; }
+
+      .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+      button {
+        font: inherit;
+        font-size: 0.95rem;
+        padding: 9px 16px;
+        color: var(--fg);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      button.primary { color: var(--accent-fg); background: var(--accent); border-color: var(--accent); }
+      button:hover { border-color: var(--accent); }
+
+      #status {
+        margin-top: 20px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        min-height: 1.6em;
+      }
+      #status:empty { display: none; }
+
+      kbd {
+        padding: 2px 6px;
+        font: inherit;
+        font-size: 0.85em;
+        border: 1px solid var(--border);
+        border-bottom-width: 2px;
+        border-radius: 5px;
+      }
+      .shortcuts { margin: 8px 0 0; padding: 0; list-style: none; }
+      .shortcuts li { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; }
+      .shortcuts li + li { border-top: 1px solid var(--border); }
+    </style>
+  </head>
+  <body>
+    <h1>Lucid settings</h1>
+    <p class="lede">An AI accessibility layer for the web.</p>
+
+    <form id="settings">
+      <fieldset>
+        <legend>AI provider</legend>
+
+        <div class="field">
+          <label for="provider">Provider</label>
+          <select id="provider" name="provider">
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="gemini">Gemini (Google)</option>
+          </select>
+          <p class="help">
+            Keys for both providers are kept, so you can switch back and forth without
+            re-entering them.
+          </p>
+        </div>
+
+        <div class="field" id="claude-fields">
+          <label for="claude-key">Anthropic API key</label>
+          <input id="claude-key" name="claude-key" type="password" autocomplete="off"
+                 spellcheck="false" placeholder="sk-ant-..." />
+          <p class="help">
+            From <a href="https://console.anthropic.com/settings/keys" target="_blank"
+            rel="noreferrer">console.anthropic.com</a>. Stored only on this computer.
+          </p>
+        </div>
+
+        <div class="field" id="gemini-fields">
+          <label for="gemini-key">Google AI API key</label>
+          <input id="gemini-key" name="gemini-key" type="password" autocomplete="off"
+                 spellcheck="false" placeholder="AIza..." />
+          <p class="help">
+            From <a href="https://aistudio.google.com/apikey" target="_blank"
+            rel="noreferrer">aistudio.google.com</a>. Stored only on this computer.
+          </p>
+        </div>
+
+        <div class="field">
+          <label for="model">Model</label>
+          <input id="model" name="model" type="text" spellcheck="false" />
+          <p class="help">Leave as-is unless you know you want a different one.</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Reading</legend>
+
+        <div class="field">
+          <label for="reading-level">Default plain-language level</label>
+          <select id="reading-level" name="reading-level">
+            <option value="plain">Plain - a general adult reader</option>
+            <option value="simple">Simple - short sentences, everyday words</option>
+            <option value="child">Very simple - around age ten</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="tts-rate">Speech rate: <output id="tts-rate-value">1.0</output>x</label>
+          <input id="tts-rate" name="tts-rate" type="range" min="0.5" max="2" step="0.1" />
+        </div>
+
+        <div class="field">
+          <label for="tts-voice">Voice</label>
+          <select id="tts-voice" name="tts-voice">
+            <option value="">Browser default</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Appearance</legend>
+
+        <div class="field">
+          <label for="font-scale">Panel text size: <output id="font-scale-value">100</output>%</label>
+          <input id="font-scale" name="font-scale" type="range" min="1" max="2" step="0.1" />
+        </div>
+
+        <div class="field row">
+          <input id="high-contrast" name="high-contrast" type="checkbox" />
+          <label for="high-contrast">Always use high-contrast panel styling</label>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Advanced</legend>
+
+        <div class="field row">
+          <input id="cache-enabled" name="cache-enabled" type="checkbox" />
+          <label for="cache-enabled">Cache AI responses for a day (faster, cheaper repeats)</label>
+        </div>
+
+        <div class="field row">
+          <input id="debug" name="debug" type="checkbox" />
+          <label for="debug">Verbose logging in the browser console</label>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="test">Test connection</button>
+          <button type="button" id="clear-cache">Clear cached responses</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Keyboard shortcuts</legend>
+        <ul class="shortcuts">
+          <li><span>Explain the selection</span> <kbd>Alt+Shift+E</kbd></li>
+          <li><span>Simplify the selection</span> <kbd>Alt+Shift+S</kbd></li>
+          <li><span>Read the selection aloud</span> <kbd>Alt+Shift+R</kbd></li>
+          <li><span>Reading Mode (whole page)</span> <kbd>Alt+Shift+L</kbd></li>
+          <li><span>Toggle the panel</span> <span>toolbar button</span></li>
+          <li><span>Voice control</span> <span>unassigned</span></li>
+        </ul>
+        <p class="help">
+          Change these, or assign the unassigned ones, at
+          <strong>chrome://extensions/shortcuts</strong> (paste it into the address bar -
+          Chrome does not allow extensions to link there directly).
+        </p>
+      </fieldset>
+    </form>
+
+    <!-- Announced whenever it changes, so saving is perceivable without sight. -->
+    <p id="status" role="status" aria-live="polite"></p>
+
+    <script type="module" src="options.js"></script>
+  </body>
+</html>

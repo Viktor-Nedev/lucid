@@ -1,0 +1,22 @@
+{
+  "name": "lucid",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Lucid - an AI accessibility layer for the web (Chrome MV3 extension)",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "typecheck": "tsc --noEmit",
+    "icons": "node scripts/make-icons.mjs",
+    "check": "node scripts/check-bundle.mjs"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.287",
+    "esbuild": "^0.28.2",
+    "typescript": "^5.7.2"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.70.0"
+  }
+}

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Lucid offscreen worker</title>
+  </head>
+  <body>
+    <!--
+      Never visible. An offscreen document is a hidden extension page used for
+      things a service worker cannot do because it has no DOM - here, holding
+      the microphone grant for voice control.
+
+      Created from the service worker with:
+        chrome.offscreen.createDocument({
+          url: 'offscreen.html',
+          reasons: ['USER_MEDIA'],
+          justification: 'Voice control needs microphone access.',
+        })
+
+      Only one offscreen document can exist at a time - check
+      chrome.offscreen.hasDocument() first.
+    -->
+    <script type="module" src="offscreen.js"></script>
+  </body>
+</html>

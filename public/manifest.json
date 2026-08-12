@@ -1,0 +1,89 @@
+{
+  "manifest_version": 3,
+  "name": "Lucid",
+  "version": "0.1.0",
+  "description": "An AI accessibility layer for the web. Explain, simplify, and read any page aloud.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "storage",
+    "scripting",
+    "tabs",
+    "contextMenus",
+    "offscreen"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  "action": {
+    "default_title": "Lucid - toggle panel"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  },
+  "commands": {
+    "explain-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+E"
+      },
+      "description": "Explain the selected text or region"
+    },
+    "simplify-selection": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Simplify the selected text"
+    },
+    "read-aloud": {
+      "suggested_key": {
+        "default": "Alt+Shift+R"
+      },
+      "description": "Read the selection aloud"
+    },
+    "read-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+L"
+      },
+      "description": "Reading Mode: read the whole page with synced highlighting"
+    },
+    "toggle-panel": {
+      "description": "Toggle the Lucid panel"
+    },
+    "voice-wake": {
+      "description": "Start voice control"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "offscreen.html",
+        "styles/*.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
