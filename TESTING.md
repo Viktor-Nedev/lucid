@@ -34,7 +34,15 @@ user deliberately asks for it. Verify that before testing anything else, and re-
 the trigger logic changes.
 
 1. Open `demo/index.html`.
-2. Open DevTools → **Network**, filter to **Fetch/XHR**.
+2. Open DevTools → **Network**, filter to **Fetch/XHR**, then narrow to the AI hosts:
+
+   ```
+   generativelanguage.googleapis.com     Gemini
+   api.anthropic.com                     Claude
+   ```
+
+   Watch both. Lucid can be pointed at either provider, and a request to the one you are not
+   filtering on is still a request you are paying for.
 3. Clear the log.
 4. Now use the page like an ordinary reader for about 30 seconds:
    - scroll from top to bottom,
@@ -54,7 +62,8 @@ Fetch/XHR entry that appears is coming from Lucid and is a bug.
 If a request fires during step 4, stop and fix that before continuing. Idle-time or
 hover-triggered calls will drain the key during the demo.
 
-> Exact provider hostname to filter on: **TODO** — fill in once the provider is settled.
+> Anything reaching either host is billable. If you see traffic to a host that is on neither
+> list, find out what it is before demoing.
 
 ---
 
