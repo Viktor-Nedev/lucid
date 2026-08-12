@@ -73,6 +73,10 @@ function boot(): void {
       if (existing) existing.push(handler);
       else commandHandlers.set(route, [handler]);
     },
+    // The same dispatch the service worker's commands go through, so a feature
+    // handing off to another feature is indistinguishable from the user
+    // pressing that feature's shortcut. Hoisted below.
+    dispatch,
     log: log.child('feature'),
   };
 

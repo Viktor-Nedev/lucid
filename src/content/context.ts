@@ -90,6 +90,26 @@ export interface FeatureContext {
    */
   onCommand(route: TabRoute, handler: () => void | Promise<void>): void;
 
+  /**
+   * Invoke a route - the counterpart to onCommand, for handing work to
+   * whichever feature owns it.
+   *
+   * Voice control is the motivating case: it recognises "read this" and needs
+   * to trigger Reading Mode without importing it or duplicating what it does.
+   *
+   *     ctx.dispatch('command.readAloud');
+   *
+   * Runs every handler registered for the route, exactly as a keyboard
+   * shortcut would, and resolves when they have all settled. A handler that
+   * throws is logged and surfaced in the panel without stopping the others.
+   * If no feature handles the route, the panel says so.
+   *
+   * There is no cycle detection. If A dispatches B and B dispatches A, that
+   * loops until the page gives up - so dispatch routes you do not own, and do
+   * not dispatch a route from inside its own handler.
+   */
+  dispatch(route: TabRoute): Promise<void>;
+
   /** Namespaced logger, e.g. `[lucid:content:explain]`. */
   log: Logger;
 }

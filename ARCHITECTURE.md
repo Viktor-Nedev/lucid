@@ -303,7 +303,16 @@ Every stub carries a header comment with its route, the exact AI call, the
 response shape, and a worked example. A background handler is about five lines.
 
 A content feature exports `register(ctx)` and receives everything it needs on
-`ctx` — panel, highlight, tts, capture, send, stream, settings, onCommand, log.
+`ctx` — panel, highlight, tts, capture, send, stream, settings, onCommand,
+dispatch, log.
+
+`ctx.onCommand(route, handler)` registers to handle a route; `ctx.dispatch(route)`
+invokes one. Dispatch exists so a feature can hand work to whichever feature
+owns it rather than duplicating it — voice control recognising "read this" and
+triggering Reading Mode is the motivating case. A dispatched route is
+indistinguishable from the user pressing that feature's shortcut. There is no
+cycle detection, so dispatch routes you do not own, and never dispatch a route
+from inside its own handler.
 **Do not import `panel.js` or `tts.js` directly in a feature**, and do not edit
 `content/index.ts`: that is what keeps six people out of one file, and what
 guarantees the page has exactly one panel and one speech session. If something
