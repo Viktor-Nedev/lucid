@@ -1,0 +1,152 @@
+<!doctype html>
+<!-- LUCID FIXTURE: dashboard
+     Widgets and data: a canvas chart for behavior 5, a table where every cell is a td,
+     tab and modal widgets built from bare divs, and a ticker that rewrites itself every
+     three seconds. The ticker is the one to watch -- it should not retrigger description
+     or narration on every update.
+
+     Notes are in comments only, never in attributes. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fleet dashboard</title>
+  <style>
+    :root { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; color: #1f2328; background: #fff; }
+    header { padding: 16px 24px; border-bottom: 1px solid #e6e6e6; display: flex; align-items: center; gap: 24px; }
+    h1 { font-size: 19px; margin: 0; letter-spacing: -0.01em; }
+    nav { display: flex; gap: 16px; font-size: 14px; margin-left: auto; }
+    nav a { color: #33404f; }
+    main { max-width: 980px; margin: 0 auto; padding: 24px; }
+
+    .tabs { display: flex; gap: 4px; border-bottom: 1px solid #e6e6e6; margin-bottom: 20px; }
+    .tab { padding: 9px 16px; font-size: 14px; cursor: pointer; border-bottom: 2px solid transparent; }
+    .tab.active { border-bottom-color: #0b5cad; font-weight: 600; }
+    .panel { display: none; } .panel.active { display: block; }
+
+    table { border-collapse: collapse; width: 100%; font-size: 14px; }
+    td { border: 1px solid #e6e6e6; padding: 9px 11px; }
+    .head td { background: #f5f6f8; font-weight: 600; }
+
+    /* control borders at #e9e9e9 on #ffffff are ~1.2:1,
+       nowhere near the 3:1 minimum for the boundary of a UI component. */
+    .ghostbtn { border: 1px solid #e9e9e9; background: #fff; border-radius: 6px; padding: 7px 13px; font-size: 14px; cursor: pointer; }
+
+    .ticker { background: #f5f6f8; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 18px; }
+    .backdrop { position: fixed; inset: 0; background: rgba(15,20,26,0.45); display: none; }
+    .backdrop.open { display: block; }
+    .modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%); background: #fff; border-radius: 12px; padding: 24px; width: 380px; box-shadow: 0 12px 40px rgba(0,0,0,.22); display: none; }
+    .modal.open { display: block; }
+    .primary { background: #0b5cad; color: #fff; border: 0; border-radius: 6px; padding: 8px 15px; font-size: 14px; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Fleet dashboard</h1>
+  <!-- long repeated nav with no skip link and no way to bypass it. -->
+  <nav>
+    <a href="#a">Vehicles</a><a href="#b">Drivers</a><a href="#c">Routes</a>
+    <a href="#d">Maintenance</a><a href="#e">Fuel</a><a href="#f">Reports</a><a href="#g">Settings</a>
+  </nav>
+</header>
+
+<main>
+  <!-- this ticker rewrites itself every 3 seconds with no
+       mechanism to pause, stop, or hide the update. -->
+  <div class="ticker" id="ticker">Live: 41 vehicles active &middot; last sync just now</div>
+
+  <!-- custom tab widget made of plain <div>s.
+       No role="tablist"/"tab"/"tabpanel", no aria-selected, no aria-controls, not focusable,
+       no arrow-key handling. Mouse users only. -->
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(0)">Overview</div>
+    <div class="tab" onclick="showTab(1)">Utilisation</div>
+    <div class="tab" onclick="showTab(2)">Alerts</div>
+  </div>
+
+  <div class="panel active" id="p0">
+    <!-- data table with zero <th> cells, no scope attributes,
+         and no <caption>. Every cell is a <td>, so no row or column associations exist. -->
+    <table>
+      <tr class="head"><td>Vehicle</td><td>Driver</td><td>Status</td><td>Odometer</td></tr>
+      <tr><td>VAN-114</td><td>R. Osei</td><td>In service</td><td>84,210 km</td></tr>
+      <tr><td>VAN-118</td><td>M. Lindqvist</td><td>Workshop</td><td>112,860 km</td></tr>
+      <tr><td>TRK-203</td><td>D. Ferreira</td><td>In service</td><td>240,145 km</td></tr>
+      <tr><td>TRK-207</td><td>S. Nakamura</td><td>Idle</td><td>66,900 km</td></tr>
+    </table>
+
+    <p style="margin-top:18px">
+      <button class="ghostbtn" onclick="loadMore()">Load 20 more</button>
+      <button class="primary" onclick="openModal()">Schedule service</button>
+    </p>
+
+    <!-- loadMore() writes a result message here, but the container
+         has no role="status" / aria-live, so the update is silent for screen-reader users. -->
+    <p id="loadstatus" style="font-size:13px;color:#5c6470"></p>
+  </div>
+
+  <div class="panel" id="p1">
+    <!-- the chart is drawn to a <canvas> with no text alternative --
+         no role="img" + aria-label, no adjacent data table, no fallback content. -->
+    <canvas id="chart" width="640" height="240"></canvas>
+  </div>
+
+  <div class="panel" id="p2">
+    <!-- id="alert-row" is duplicated, which breaks label and aria-describedby
+         targeting and makes getElementById resolve to the first one only. -->
+    <p id="alert-row">Brake pad wear on TRK-203 above threshold.</p>
+    <p id="alert-row">Tyre pressure low on VAN-118.</p>
+  </div>
+</main>
+
+<div class="backdrop" id="backdrop" onclick="closeModal()"></div>
+<!-- dialog has no role="dialog", no aria-modal,
+     no accessible name, does not move focus in on open, does not trap Tab inside,
+     does not restore focus on close, and does not respond to Escape. Content behind it
+     stays reachable by keyboard. -->
+<div class="modal" id="modal">
+  <h2 style="margin:0 0 8px;font-size:17px">Schedule service</h2>
+  <p style="font-size:14px;color:#5c6470;margin:0 0 18px">Pick the next available workshop slot.</p>
+  <button class="primary" onclick="closeModal()">Confirm</button>
+  <button class="ghostbtn" onclick="closeModal()">Cancel</button>
+</div>
+
+<script>
+  function showTab(i) {
+    var tabs = document.querySelectorAll('.tab'), panels = document.querySelectorAll('.panel');
+    for (var t = 0; t < tabs.length; t++) tabs[t].classList.toggle('active', t === i);
+    for (var p = 0; p < panels.length; p++) panels[p].classList.toggle('active', p === i);
+    if (i === 1) drawChart();
+  }
+  function loadMore() {
+    document.getElementById('loadstatus').textContent = '20 more vehicles loaded (64 of 128).';
+  }
+  function openModal() {
+    document.getElementById('backdrop').classList.add('open');
+    document.getElementById('modal').classList.add('open');
+  }
+  function closeModal() {
+    document.getElementById('backdrop').classList.remove('open');
+    document.getElementById('modal').classList.remove('open');
+  }
+  function drawChart() {
+    var c = document.getElementById('chart'); if (!c || c.dataset.drawn) return;
+    var x = c.getContext('2d'), vals = [42, 58, 51, 73, 66, 81, 60];
+    x.fillStyle = '#e8eef6'; x.fillRect(0, 0, 640, 240);
+    for (var i = 0; i < vals.length; i++) {
+      x.fillStyle = '#0b5cad';
+      x.fillRect(40 + i * 82, 220 - vals[i] * 2.2, 52, vals[i] * 2.2);
+    }
+    c.dataset.drawn = '1';
+  }
+  var n = 41;
+  setInterval(function () {
+    n = 38 + Math.floor(Math.random() * 8);
+    document.getElementById('ticker').textContent =
+      'Live: ' + n + ' vehicles active \u00b7 last sync just now';
+  }, 3000);
+</script>
+</body>
+</html>

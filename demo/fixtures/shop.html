@@ -1,0 +1,140 @@
+<!doctype html>
+<!-- LUCID FIXTURE: shop
+     A product grid with the kind of markup Lucid exists to compensate for: images with
+     missing or useless alt text, an unlabeled search box, and cart controls built from
+     divs. Exercises Alt+E across several images, and behavior 6 on an isolated input.
+
+     The bad markup is raw material for assistance, not a list of things to report.
+     Notes are in comments only so nothing can key off an attribute. -->
+
+<!-- No lang attribute. Kept deliberately: with no declared language, speech synthesis
+     falls back to the system default voice, so this is a real test of how Alt+R and Alt+P
+     behave when they cannot tell what language the page is in. -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workshop tools - Northwind Supply</title>
+  <style>
+    :root { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; color: #1f2328; background: #fff; }
+    .topbar { display: flex; align-items: center; gap: 16px; padding: 14px 24px; border-bottom: 1px solid #e6e6e6; }
+    .brand { font-weight: 700; font-size: 20px; letter-spacing: -0.02em; }
+    .navlinks { display: flex; gap: 18px; margin-left: auto; }
+    .navlinks span { cursor: pointer; color: #1f2328; }
+    .searchwrap { flex: 1; max-width: 320px; }
+    .searchwrap input { width: 100%; padding: 8px 10px; border: 1px solid #d0d0d0; border-radius: 6px; font-size: 14px; }
+    .wrap { max-width: 1080px; margin: 0 auto; padding: 28px 24px 64px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 24px; }
+    .card { border: 1px solid #ececec; border-radius: 10px; overflow: hidden; }
+    .card img { width: 100%; height: 160px; object-fit: cover; display: block; background: #f2f2f2; }
+    .card .body { padding: 12px 14px 16px; }
+    .name { font-size: 15px; font-weight: 600; margin: 0 0 4px; }
+
+    /* #b8b8b8 on #ffffff is ~1.9:1, far below the 4.5:1 minimum. */
+    .price { color: #b8b8b8; font-size: 14px; margin: 0 0 12px; }
+
+    /* "on sale" is signalled by red text colour alone. */
+    .price.sale { color: #e02b2b; }
+
+    .addbtn { background: #0b5cad; color: #fff; text-align: center; padding: 9px 12px; border-radius: 6px; font-size: 14px; cursor: pointer; user-select: none; }
+    .iconbtn { background: none; border: 1px solid #d0d0d0; border-radius: 6px; padding: 6px 9px; cursor: pointer; font-size: 15px; }
+
+    /* focus indicator suppressed globally. */
+    *:focus { outline: none; }
+  </style>
+</head>
+<body>
+
+  <!-- no landmark structure at all -- no <header>, <nav>, <main>, <footer>.
+       Everything is generic <div>, so a screen-reader user has no way to jump between regions. -->
+  <div class="topbar">
+    <div class="brand">Northwind Supply</div>
+
+    <div class="searchwrap">
+      <!-- input labelled by placeholder only.
+           The placeholder disappears on input and is not a reliable accessible name. -->
+      <input type="text" placeholder="Search products">
+    </div>
+
+    <div class="navlinks">
+      <span>Orders</span>
+      <span>Account</span>
+      <!-- icon-only control with no accessible name.
+           The glyph is decorative text content; nothing conveys "Cart" programmatically. -->
+      <button class="iconbtn">&#128722;</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h1>Workshop tools</h1>
+
+    <!-- heading level jumps h1 -> h4, breaking the document outline. -->
+    <h4>Best sellers this week</h4>
+
+    <div class="grid">
+
+      <div class="card">
+        <!-- informative product image with no alt attribute. -->
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%23dfe6ee'/><rect x='150' y='90' width='100' height='120' rx='8' fill='%238fa3b8'/></svg>">
+        <div class="body">
+          <p class="name">Torque wrench, 1/2 in drive</p>
+          <p class="price sale">$89.00</p>
+          <!-- <div> acting as a button.
+               Not focusable, not keyboard operable, exposes no button role. -->
+          <div class="addbtn" onclick="addToCart('tw-12')">Add to cart</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- alt="image" says nothing about the product. -->
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%23e8e2d6'/><circle cx='200' cy='150' r='70' fill='%23b39c73'/></svg>" alt="image">
+        <div class="body">
+          <p class="name">Digital caliper, 150 mm</p>
+          <p class="price">$42.50</p>
+          <div class="addbtn" onclick="addToCart('dc-150')">Add to cart</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- purely decorative image given a meaningless alt string.
+             It should be alt="" so assistive tech skips it, instead it announces "image123.jpg". -->
+        <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%23d6e8dc'/><path d='M120 200 L200 100 L280 200 Z' fill='%236f9c81'/></svg>" alt="image123.jpg">
+        <div class="body">
+          <p class="name">Ratcheting screwdriver set</p>
+          <p class="price">$27.99</p>
+          <div class="addbtn" onclick="addToCart('rs-set')">Add to cart</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <!-- image wrapped in a link, image has no alt,
+             so the link has no accessible name whatsoever. -->
+        <a href="#product/bs-9">
+          <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='300'><rect width='400' height='300' fill='%23eadfe8'/><rect x='120' y='120' width='160' height='60' rx='30' fill='%23a1789b'/></svg>">
+        </a>
+        <div class="body">
+          <p class="name">Bench vise, 5 in jaw</p>
+          <p class="price">$134.00</p>
+          <div class="addbtn" onclick="addToCart('bs-9')">Add to cart</div>
+        </div>
+      </div>
+
+    </div>
+
+    <p style="margin-top:32px">
+      Need help choosing?
+      <!-- link text is not meaningful out of context. -->
+      <a href="#guide">Click here</a> to read our buying guide, or
+      <a href="#chat">click here</a> to talk to an advisor.
+    </p>
+  </div>
+
+  <script>
+    function addToCart(sku) {
+      // Deliberately mouse-only: no keydown handler, matching the div-as-button defect.
+      console.log('added', sku);
+    }
+  </script>
+</body>
+</html>

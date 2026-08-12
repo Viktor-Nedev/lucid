@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- LUCID FIXTURE: signup-form
+     The awkward form cases for behavior 6: placeholder-only labels, a label pointing at
+     an id that does not exist, a checkbox made from a span, and positive tabindex values
+     that scramble focus order. That last one matters -- behavior 6 fires on tab, so this
+     checks announcements follow actual focus rather than DOM position.
+
+     Notes are in comments only, never in attributes. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Create your account</title>
+  <style>
+    :root { font-family: -apple-system, "Segoe UI", Roboto, sans-serif; }
+    body { margin: 0; color: #1f2328; background: #f7f8fa; }
+    main { max-width: 560px; margin: 0 auto; padding: 40px 24px 80px; }
+    .card { background: #fff; border: 1px solid #e6e6e6; border-radius: 12px; padding: 28px; }
+    h1 { margin: 0 0 6px; font-size: 24px; letter-spacing: -0.02em; }
+    .sub { color: #5c6470; margin: 0 0 24px; font-size: 14px; }
+    .field { margin-bottom: 18px; }
+    input[type=text], input[type=email], input[type=tel], input[type=password] {
+      width: 100%; box-sizing: border-box; padding: 10px 12px;
+      border: 1px solid #d0d0d0; border-radius: 7px; font-size: 14px;
+    }
+    .req { color: #d62828; }
+    .rowgroup { display: flex; gap: 20px; margin: 6px 0 0; }
+    .rowgroup label { font-size: 14px; }
+
+    /* the error state is communicated with colour only --
+       a red border and red text, with no icon, prefix, or programmatic association. */
+    .errored { border-color: #d62828 !important; }
+    .errtext { color: #d62828; font-size: 13px; margin-top: 6px; }
+
+    .fakecheck { width: 18px; height: 18px; border: 1px solid #9aa0a6; border-radius: 4px; display: inline-block; vertical-align: -4px; margin-right: 8px; cursor: pointer; }
+    .fakecheck.on { background: #0b5cad; border-color: #0b5cad; }
+    .submit { background: #0b5cad; color: #fff; padding: 11px 18px; border-radius: 7px; text-align: center; font-size: 15px; cursor: pointer; user-select: none; margin-top: 8px; }
+    .legendish { font-weight: 600; font-size: 14px; margin-bottom: 2px; }
+  </style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>Create your account</h1>
+    <p class="sub">Fields marked <span class="req">*</span> are required.</p>
+
+    <!-- this validation summary is populated by script after
+         submission but is not a live region, so it is never announced. -->
+    <div id="summary" style="display:none"></div>
+
+    <form id="signup" novalidate>
+
+      <div class="field">
+        <!-- visible label replaced by a placeholder.
+             "required" is conveyed only by the red asterisk in the
+             intro sentence -- no required or aria-required attribute.
+             no autocomplete token for a name field. -->
+        <input type="text" id="fullname" placeholder="Full name *">
+      </div>
+
+      <div class="field">
+        <!-- the label's for= points at "email-address",
+             but the input's id is "email". The association silently fails. -->
+        <label for="email-address">Email <span class="req">*</span></label>
+        <input type="email" id="email" class="errored" aria-invalid="true">
+        <!-- error text sits next to the field visually but is not
+             referenced by aria-describedby, so it is never read out with the field. -->
+        <div class="errtext">That email address is already registered.</div>
+      </div>
+
+      <div class="field">
+        <!-- Placeholder-only, and no autocomplete token. -->
+        <input type="tel" placeholder="Phone number">
+      </div>
+
+      <div class="field">
+        <!-- positive tabindex values yank these two inputs to the
+             front of the tab order, so focus jumps out of visual order. -->
+        <input type="password" id="pw" placeholder="Password *" tabindex="3">
+      </div>
+
+      <div class="field">
+        <input type="password" id="pw2" placeholder="Confirm password *" tabindex="2">
+      </div>
+
+      <div class="field">
+        <!-- a radio group presented as a styled div with a fake
+             legend. No <fieldset>/<legend> and no role="radiogroup", so the group question
+             ("Account type") is never associated with the individual choices. -->
+        <div class="legendish">Account type</div>
+        <div class="rowgroup">
+          <label><input type="radio" name="plan" value="personal"> Personal</label>
+          <label><input type="radio" name="plan" value="business"> Business</label>
+          <label><input type="radio" name="plan" value="edu"> Education</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <!-- custom checkbox built from a <span>.
+             No role, no aria-checked, no tabindex, no keyboard handler. -->
+        <span class="fakecheck" id="tos" onclick="this.classList.toggle('on')"></span>
+        <span style="font-size:14px">I agree to the terms of service</span>
+      </div>
+
+      <!-- submit control is a <div>, unreachable by keyboard
+           and never announced as a button. -->
+      <div class="submit" onclick="submitForm()">Create account</div>
+    </form>
+  </div>
+</main>
+
+<script>
+  function submitForm() {
+    var s = document.getElementById('summary');
+    s.style.display = 'block';
+    s.className = 'errtext';
+    s.textContent = 'Please fix 2 problems before continuing.';
+  }
+</script>
+</body>
+</html>

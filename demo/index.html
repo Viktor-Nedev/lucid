@@ -1,0 +1,591 @@
+<!doctype html>
+<!--
+  LUCID DEMO PAGE - this is the page that goes on camera.
+
+  It is built to look like an ordinary published web page, because the pitch is
+  "Lucid works on the real web". There is no demo scaffolding on it beyond the
+  single thin hotkey strip at the top, which scrolls away on the first swipe.
+
+  What each behavior has to work with, in DOM order:
+    Alt+R  any prose on the page
+    Alt+S  the two compliance paragraphs and the determination summary - long,
+           nested, jargon-heavy, genuinely hard to read
+    Alt+P  whole document, DOM order is clean and matches visual order
+    Alt+E  the reservoir illustration (img, no alt) and the treatment diagram
+    #5     the lead-concentration <canvas> - real trend with a peak and recovery,
+           and the multi-node treatment <svg>
+    #6     the alerts form - no <label> anywhere, purposes inferable from
+           neighbouring DOM text, plus a deliberately cryptic validation error
+    #7     voice commands work anywhere on the page
+
+  The poor accessibility here is deliberate raw material, not a bug list.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2025 Annual Water Quality Report - Harbor Bay Water District</title>
+<style>
+  :root {
+    --ink: #16212b;
+    --ink-soft: #55636f;
+    --line: #dbe3e8;
+    --deep: #0d4553;
+    --teal: #0a6c7e;
+    --teal-soft: #e6f1f4;
+    --surface: #f5f8f9;
+    --warn: #9a4b16;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--sans); color: var(--ink); background: #fff; line-height: 1.6; }
+
+  /* The only presenter affordance on the page. Not sticky - it scrolls away. */
+  .hotkeys {
+    background: #11242e; color: #cfe0e6; font-size: 12.5px; letter-spacing: .01em;
+    padding: 7px 24px; display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+  }
+  .hotkeys strong { color: #fff; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
+  .hotkeys kbd {
+    font-family: var(--sans); font-size: 11.5px; background: #24404c; color: #fff;
+    border-radius: 3px; padding: 1.5px 5px; margin-right: 4px;
+  }
+
+  header.site { border-bottom: 1px solid var(--line); }
+  .bar { max-width: 1060px; margin: 0 auto; padding: 15px 24px; display: flex; align-items: center; gap: 14px; }
+  .mark { display: flex; align-items: center; gap: 10px; }
+  .wordmark { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--deep); line-height: 1.15; }
+  .wordmark span { display: block; font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  nav.main { margin-left: auto; }
+  nav.main ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  nav.main a { color: var(--ink); text-decoration: none; padding-bottom: 3px; border-bottom: 2px solid transparent; }
+  nav.main a:hover { border-bottom-color: var(--teal); }
+  nav.main a.on { border-bottom-color: var(--teal); font-weight: 600; }
+
+  .hero { background: var(--surface); border-bottom: 1px solid var(--line); }
+  .hero .inner { max-width: 1060px; margin: 0 auto; padding: 44px 24px 40px; }
+  .crumb { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; }
+  .crumb a { color: var(--ink-soft); }
+  h1 { font-family: var(--serif); font-size: 40px; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 12px; max-width: 17ch; }
+  .standfirst { font-size: 17.5px; color: var(--ink-soft); max-width: 62ch; margin: 0 0 20px; }
+  .issue { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 14px; }
+
+  main { max-width: 1060px; margin: 0 auto; padding: 0 24px 40px; }
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 268px; gap: 52px; align-items: start; }
+  @media (max-width: 880px) { .cols { grid-template-columns: 1fr; gap: 34px; } }
+
+  article h2 { font-family: var(--serif); font-size: 25px; letter-spacing: -0.01em; margin: 44px 0 12px; }
+  article h3 { font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--ink-soft); margin: 30px 0 8px; }
+  article p { margin: 0 0 15px; max-width: 68ch; }
+  article a { color: var(--teal); }
+
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 34px 0 8px; }
+  @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+  .stat { background: #fff; padding: 16px 18px; }
+  .stat b { display: block; font-family: var(--serif); font-size: 27px; line-height: 1.1; color: var(--deep); }
+  .stat span { font-size: 12.5px; color: var(--ink-soft); }
+
+  figure { margin: 26px 0; }
+  figure img, figure svg { display: block; width: 100%; border-radius: 8px; }
+  figure img { border: 1px solid var(--line); }
+  figcaption { font-size: 12.5px; color: var(--ink-soft); margin-top: 9px; max-width: 62ch; }
+
+  .chartcard { border: 1px solid var(--line); border-radius: 8px; padding: 18px 18px 12px; margin: 26px 0; }
+  .chartcard .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
+  .chartcard h4 { margin: 0; font-size: 15px; }
+  .chartcard .unit { font-size: 12.5px; color: var(--ink-soft); }
+  canvas { display: block; width: 100%; height: auto; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 20px 0; }
+  caption { text-align: left; font-size: 12.5px; color: var(--ink-soft); padding-bottom: 8px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 9px 12px 9px 0; text-align: left; }
+  thead th { border-bottom: 1.5px solid #b9c6ce; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
+  td.num, th.num { text-align: right; padding-right: 18px; }
+  .flag { color: var(--warn); font-weight: 600; }
+
+  aside .box { border: 1px solid var(--line); border-radius: 8px; padding: 17px 18px; margin-bottom: 18px; }
+  aside h4 { margin: 0 0 9px; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
+  aside ul { margin: 0; padding-left: 17px; font-size: 14px; }
+  aside li { margin-bottom: 7px; }
+  aside .box.tint { background: var(--teal-soft); border-color: #c5dde3; }
+
+  .alerts { border-top: 3px solid var(--deep); background: var(--surface); margin-top: 54px; }
+  .alerts .inner { max-width: 1060px; margin: 0 auto; padding: 38px 24px 44px; }
+  .alerts h2 { font-family: var(--serif); font-size: 25px; margin: 0 0 8px; }
+  .alerts .lede { color: var(--ink-soft); max-width: 60ch; margin: 0 0 24px; }
+  .fieldrow { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 18px 22px; }
+  @media (max-width: 680px) { .fieldrow { grid-template-columns: 1fr; } }
+  .f { display: flex; flex-direction: column; gap: 5px; }
+  .f .cap { font-size: 13px; font-weight: 600; }
+  .f .hint { font-size: 12px; color: var(--ink-soft); }
+  .f input {
+    font: inherit; font-size: 14px; padding: 9px 11px; border: 1px solid #a9b6bf;
+    border-radius: 6px; background: #fff; width: 100%;
+  }
+  .f input.bad { border-color: #a2401a; }
+  .apt { max-width: 118px; }
+  .err { color: #8f3a14; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-top: 4px; }
+  .go { margin-top: 22px; background: var(--deep); color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 15px; padding: 11px 22px; cursor: pointer; }
+  .go:hover { background: #0a3946; }
+  .said { margin-top: 12px; font-size: 13.5px; color: var(--teal); }
+
+  footer.site { background: #11242e; color: #9fb4bd; font-size: 13.5px; }
+  footer.site .inner { max-width: 1060px; margin: 0 auto; padding: 32px 24px 40px; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 30px; }
+  @media (max-width: 720px) { footer.site .inner { grid-template-columns: 1fr; gap: 22px; } }
+  footer.site h5 { color: #fff; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; margin: 0 0 10px; }
+  footer.site a { color: #cfe0e6; }
+  footer.site ul { list-style: none; margin: 0; padding: 0; }
+  footer.site li { margin-bottom: 6px; }
+  .fine { max-width: 1060px; margin: 0 auto; padding: 0 24px 30px; font-size: 12px; color: #7b929c; }
+</style>
+</head>
+<body>
+
+<!-- Presenter legend. Scrolls out of frame as soon as the page moves. -->
+<div class="hotkeys">
+  <strong>Lucid</strong>
+  <span><kbd>Alt</kbd><kbd>R</kbd>read selection</span>
+  <span><kbd>Alt</kbd><kbd>S</kbd>simplify</span>
+  <span><kbd>Alt</kbd><kbd>E</kbd>describe visual</span>
+  <span><kbd>Alt</kbd><kbd>P</kbd>read page</span>
+</div>
+
+<header class="site">
+  <div class="bar">
+    <div class="mark">
+      <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true">
+        <circle cx="15" cy="15" r="15" fill="#0d4553"/>
+        <path d="M15 6c3.6 4.3 6 7.4 6 10.2A6 6 0 0 1 9 16.2C9 13.4 11.4 10.3 15 6z" fill="#7fd0dd"/>
+      </svg>
+      <div class="wordmark">Harbor Bay Water District<span>Public water system HB-4419</span></div>
+    </div>
+    <nav class="main">
+      <ul>
+        <li><a href="#residents">Residents</a></li>
+        <li><a href="#business">Business</a></li>
+        <li><a href="#quality" class="on">Water quality</a></li>
+        <li><a href="#billing">Billing</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="inner">
+    <div class="crumb"><a href="#quality">Water quality</a> &rsaquo; Annual reports &rsaquo; 2025</div>
+    <h1>2025 Annual Water Quality Report</h1>
+    <p class="standfirst">
+      Every household served by Harbor Bay receives this report once a year. It sets out what we
+      tested for, what we found, and what we did about the one result that exceeded a federal
+      action level.
+    </p>
+    <div class="issue">
+      Published 14 March 2026 &middot; Covers 1 January to 31 December 2025 &middot;
+      Prepared under 40 CFR 141.153 &middot; Contact: quality@harborbaywater.example
+    </div>
+  </div>
+</section>
+
+<main>
+<div class="cols">
+<article>
+
+  <p>
+    Harbor Bay draws its water from the Calder Reservoir and from four groundwater wells in the
+    Eastfield aquifer. Over 2025 we collected 3,184 samples and tested them for 91 separate
+    contaminants. Almost everything we measured sat well inside federal and state limits. One did
+    not, and most of this report is about that one.
+  </p>
+
+  <div class="stats">
+    <div class="stat"><b>3,184</b><span>samples collected</span></div>
+    <div class="stat"><b>91</b><span>contaminants tested</span></div>
+    <div class="stat"><b>99.4%</b><span>results within limits</span></div>
+    <div class="stat"><b>1</b><span>action level exceeded</span></div>
+  </div>
+
+  <h2 id="found">What we found</h2>
+
+  <p>
+    Lead concentrations in the Eastfield service area rose through the spring of 2025 and crossed
+    the federal action level of 15 parts per billion in July, reaching 16.2 ppb. Lead does not
+    occur in the reservoir or in the wells. It enters the water from lead service lines and older
+    household plumbing, and how much of it dissolves depends on how corrosive the water is when it
+    reaches those pipes.
+  </p>
+
+  <div class="chartcard">
+    <div class="head">
+      <h4>Lead, monthly average</h4>
+      <span class="unit">parts per billion &middot; Eastfield service area &middot; 2025</span>
+    </div>
+    <canvas id="leadChart" width="1300" height="520"></canvas>
+  </div>
+
+  <p>
+    In August we increased the orthophosphate dose at the Eastfield treatment plant. Orthophosphate
+    builds a thin protective film on the inside of pipework, which slows the rate at which lead
+    dissolves into the water passing through it. Concentrations fell through the autumn and were
+    back to 3.2 ppb by December.
+  </p>
+
+  <figure>
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='520'><defs><linearGradient id='s' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%23cfe6f0'/><stop offset='1' stop-color='%23eaf4f7'/></linearGradient><linearGradient id='w' x1='0' y1='0' x2='0' y2='1'><stop offset='0' stop-color='%236aa8c2'/><stop offset='1' stop-color='%234a8aa6'/></linearGradient></defs><rect width='1200' height='520' fill='url(%23s)'/><circle cx='985' cy='108' r='42' fill='%23f6e7c4'/><path d='M0 250 L190 168 L360 244 L520 190 L700 262 L860 206 L1030 268 L1200 214 L1200 330 L0 330 Z' fill='%23a9c5ab'/><path d='M0 296 L230 232 L430 292 L640 240 L880 300 L1090 250 L1200 286 L1200 340 L0 340 Z' fill='%2387ad8c'/><rect y='330' width='1200' height='190' fill='url(%23w)'/><path d='M0 344 q60 -13 120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0' stroke='%23a8d0e0' stroke-width='4' fill='none' opacity='.75'/><path d='M0 386 q60 -13 120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0 t120 0' stroke='%23a8d0e0' stroke-width='3' fill='none' opacity='.5'/><rect x='118' y='300' width='300' height='16' rx='4' fill='%23b9c2c7'/><ellipse cx='214' cy='300' rx='74' ry='24' fill='%23dfe6ea'/><rect x='140' y='300' width='148' height='62' fill='%23cdd6db'/><ellipse cx='214' cy='362' rx='74' ry='24' fill='%23b4bfc5'/><ellipse cx='214' cy='300' rx='58' ry='18' fill='%237fb3c9'/><ellipse cx='396' cy='318' rx='62' ry='20' fill='%23dfe6ea'/><rect x='334' y='318' width='124' height='52' fill='%23cdd6db'/><ellipse cx='396' cy='370' rx='62' ry='20' fill='%23b4bfc5'/><ellipse cx='396' cy='318' rx='48' ry='15' fill='%237fb3c9'/><rect x='560' y='268' width='176' height='96' rx='6' fill='%23e4eaed'/><rect x='560' y='268' width='176' height='22' rx='6' fill='%23c3ced4'/><rect x='584' y='306' width='36' height='36' fill='%23aebbc2'/><rect x='640' y='306' width='36' height='36' fill='%23aebbc2'/><rect x='458' y='332' width='104' height='11' fill='%239fabb2'/><rect x='736' y='320' width='120' height='11' fill='%239fabb2'/><rect x='856' y='286' width='13' height='58' fill='%23aebbc2'/><ellipse cx='862' cy='286' rx='30' ry='11' fill='%23dfe6ea'/></svg>">
+    <figcaption>Figure 1. Calder Reservoir and the Eastfield treatment works, looking north.</figcaption>
+  </figure>
+
+  <h2 id="treatment">How your water is treated</h2>
+
+  <p>
+    Raw water passes through seven stages before it reaches the distribution mains. Corrosion
+    control, the stage adjusted in August, sits between disinfection and storage.
+  </p>
+
+  <figure>
+    <svg viewBox="0 0 1180 300" role="presentation">
+      <defs>
+        <marker id="arw" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+          <path d="M0 0 L8 4 L0 8 Z" fill="#0d4553"/>
+        </marker>
+        <style>
+          .nb { fill: #e6f1f4; stroke: #0a6c7e; stroke-width: 1.5; }
+          .nt { font: 600 15px -apple-system, "Segoe UI", sans-serif; fill: #16212b; text-anchor: middle; }
+          .ns { font: 12.5px -apple-system, "Segoe UI", sans-serif; fill: #55636f; text-anchor: middle; }
+          .ln { stroke: #0d4553; stroke-width: 2; fill: none; }
+        </style>
+      </defs>
+
+      <rect class="nb" x="8" y="34" width="146" height="72" rx="8"/>
+      <text class="nt" x="81" y="64">Intake</text><text class="ns" x="81" y="84">Calder Reservoir</text>
+      <path class="ln" d="M154 70 H196" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="200" y="34" width="146" height="72" rx="8"/>
+      <text class="nt" x="273" y="64">Screening</text><text class="ns" x="273" y="84">debris removed</text>
+      <path class="ln" d="M346 70 H388" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="392" y="34" width="146" height="72" rx="8"/>
+      <text class="nt" x="465" y="64">Coagulation</text><text class="ns" x="465" y="84">particles bind</text>
+      <path class="ln" d="M538 70 H580" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="584" y="34" width="146" height="72" rx="8"/>
+      <text class="nt" x="657" y="64">Sedimentation</text><text class="ns" x="657" y="84">solids settle</text>
+      <path class="ln" d="M730 70 H772" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="776" y="34" width="146" height="72" rx="8"/>
+      <text class="nt" x="849" y="64">Filtration</text><text class="ns" x="849" y="84">sand and carbon</text>
+
+      <path class="ln" d="M922 70 H984 Q1010 70 1010 96 V150 Q1010 176 984 176 H922" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="776" y="140" width="146" height="72" rx="8"/>
+      <text class="nt" x="849" y="170">Disinfection</text><text class="ns" x="849" y="190">chloramine</text>
+      <path class="ln" d="M776 176 H734" marker-end="url(#arw)"/>
+
+      <rect x="584" y="140" width="146" height="72" rx="8" fill="#fdf0e2" stroke="#9a4b16" stroke-width="1.5"/>
+      <text class="nt" x="657" y="164">Corrosion</text><text class="nt" x="657" y="182">control</text>
+      <text class="ns" x="657" y="232">adjusted Aug 2025</text>
+      <path class="ln" d="M584 176 H542" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="392" y="140" width="146" height="72" rx="8"/>
+      <text class="nt" x="465" y="170">Storage</text><text class="ns" x="465" y="190">covered reservoir</text>
+      <path class="ln" d="M392 176 H350" marker-end="url(#arw)"/>
+
+      <rect class="nb" x="200" y="140" width="146" height="72" rx="8"/>
+      <text class="nt" x="273" y="170">Distribution</text><text class="ns" x="273" y="190">to your tap</text>
+    </svg>
+    <figcaption>Figure 2. Treatment stages, from intake to distribution.</figcaption>
+  </figure>
+
+  <h2 id="detected">Detected contaminants</h2>
+
+  <table>
+    <caption>Substances detected during 2025. Anything not detected is omitted.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Substance</th>
+        <th scope="col" class="num">Highest</th>
+        <th scope="col" class="num">Average</th>
+        <th scope="col" class="num">Limit</th>
+        <th scope="col">Typical source</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Lead <span class="flag">&#9650;</span></th><td class="num flag">16.2</td><td class="num">6.9</td><td class="num">15</td><td>Corrosion of household plumbing</td></tr>
+      <tr><th scope="row">Copper</th><td class="num">0.42</td><td class="num">0.19</td><td class="num">1.3</td><td>Corrosion of household plumbing</td></tr>
+      <tr><th scope="row">Nitrate</th><td class="num">3.1</td><td class="num">1.8</td><td class="num">10</td><td>Fertiliser runoff, septic systems</td></tr>
+      <tr><th scope="row">Total trihalomethanes</th><td class="num">41</td><td class="num">28</td><td class="num">80</td><td>By-product of disinfection</td></tr>
+      <tr><th scope="row">Haloacetic acids</th><td class="num">33</td><td class="num">21</td><td class="num">60</td><td>By-product of disinfection</td></tr>
+      <tr><th scope="row">Turbidity</th><td class="num">0.28</td><td class="num">0.07</td><td class="num">1.0</td><td>Soil runoff</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="compliance">Regulatory compliance</h2>
+
+  <p>
+    The two paragraphs that follow are reproduced from the notice we are required to publish. They
+    are written to satisfy the regulation rather than to be read.
+  </p>
+
+  <p>
+    Pursuant to the monitoring and reporting obligations imposed under 40 CFR Part 141 Subpart I,
+    the supplier of water is required to determine compliance with the lead action level by
+    reference to the ninetieth percentile of all tap samples collected during each monitoring
+    period, such that an exceedance is deemed to have occurred if, and only if, the concentration
+    of lead in more than ten percent of the samples so collected is greater than 0.015 milligrams
+    per litre, notwithstanding that individual results in excess of that figure may be recorded
+    without an exceedance being triggered, and provided further that any system which exceeds the
+    action level shall thereafter be subject to the public education requirements of 141.85 and
+    the corrosion control treatment requirements of 141.81 until such time as the system
+    demonstrates compliance for two consecutive monitoring periods.
+  </p>
+
+  <p>
+    Where a system serving a population of more than fifty thousand persons has failed to meet the
+    optimal water quality parameters designated by the primacy agency for two consecutive
+    six-month periods, the system shall, within twelve months of the end of the second such
+    period, submit a recommendation for source water treatment or additional corrosion control
+    treatment, whereupon the primacy agency shall make a determination as to whether such
+    treatment is required, and the system shall complete installation of any treatment so required
+    within twenty-four months of that determination, subject to any extension the primacy agency
+    may grant in writing upon a showing that completion within the said period is not practicable.
+  </p>
+
+  <h3>What this means for you</h3>
+
+  <p>
+    If your home was built before 1988 it may have a lead service line. Running the cold tap for
+    thirty seconds before drinking clears water that has been standing in the pipe overnight. We
+    will test your tap free of charge; the waiting list is currently about three weeks. Households
+    on the Eastfield network are being prioritised.
+  </p>
+
+</article>
+
+<aside>
+  <div class="box tint">
+    <h4>Free tap testing</h4>
+    <p style="margin:0 0 10px;font-size:14px">
+      We will collect and analyse a sample from your kitchen tap at no cost.
+    </p>
+    <p style="margin:0;font-size:14px"><a href="#testing">Request a test kit</a></p>
+  </div>
+
+  <div class="box">
+    <h4>In this report</h4>
+    <ul>
+      <li><a href="#found">What we found</a></li>
+      <li><a href="#treatment">How your water is treated</a></li>
+      <li><a href="#detected">Detected contaminants</a></li>
+      <li><a href="#compliance">Regulatory compliance</a></li>
+    </ul>
+  </div>
+
+  <div class="box">
+    <h4>Past reports</h4>
+    <ul>
+      <li><a href="#r2024">2024 report</a></li>
+      <li><a href="#r2023">2023 report</a></li>
+      <li><a href="#r2022">2022 report</a></li>
+    </ul>
+  </div>
+</aside>
+</div>
+</main>
+
+<section class="alerts">
+  <div class="inner">
+    <h2>Get notified about your water</h2>
+    <p class="lede">
+      We will email you when testing in your service area finds anything above an action level,
+      and when work is planned on your street.
+    </p>
+
+    <form id="alertForm" novalidate>
+      <div class="fieldrow">
+        <div class="f">
+          <div class="cap">Full name</div>
+          <input type="text" id="nm">
+        </div>
+
+        <div class="f">
+          <div class="cap">Email address</div>
+          <div class="hint">We will only use this for water quality notices.</div>
+          <input type="text" id="em">
+        </div>
+
+        <div class="f">
+          <div class="cap">Service address</div>
+          <div class="hint">The address the water is supplied to.</div>
+          <input type="text" id="ad">
+          <div class="err" id="adErr" hidden>E_ADDR_FMT: value failed pattern validation</div>
+        </div>
+
+        <div class="f">
+          <div class="cap">Account number</div>
+          <div class="hint">Ten digits, printed at the top right of your bill.</div>
+          <input type="text" id="ac">
+        </div>
+      </div>
+
+      <!-- No caption, no hint, no label. Purpose has to come from the row above it. -->
+      <div class="f apt" style="margin-top:18px">
+        <input type="text" id="ap">
+      </div>
+
+      <button type="submit" class="go">Sign up for alerts</button>
+      <div class="said" id="said" hidden>Thanks. We have added you to the Eastfield notice list.</div>
+    </form>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="inner">
+    <div>
+      <h5>Harbor Bay Water District</h5>
+      <p style="margin:0">
+        410 Calder Way<br>Harbor Bay<br>
+        Emergencies, 24 hours: <a href="#contact">(555) 0148-2200</a>
+      </p>
+    </div>
+    <div>
+      <h5>Water quality</h5>
+      <ul>
+        <li><a href="#quality">Annual reports</a></li>
+        <li><a href="#testing">Request a test kit</a></li>
+        <li><a href="#lead">Lead service lines</a></li>
+        <li><a href="#hardness">Water hardness</a></li>
+      </ul>
+    </div>
+    <div>
+      <h5>Your account</h5>
+      <ul>
+        <li><a href="#billing">Pay a bill</a></li>
+        <li><a href="#billing">Payment support</a></li>
+        <li><a href="#residents">Report a leak</a></li>
+        <li><a href="#contact">Contact us</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="fine">
+    This report is published under 40 CFR 141.153. Harbor Bay Water District is a fictional utility
+    used for demonstration purposes.
+  </div>
+</footer>
+
+<script>
+(function () {
+  // ---- Lead concentration chart -------------------------------------------------
+  // Shape matters: flat through spring, sharp climb to a July peak above the action
+  // line, then recovery after the August treatment change. Behavior #5 should be able
+  // to narrate that arc rather than just read twelve numbers.
+  var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  var lead   = [3.1, 3.4, 3.0, 4.2, 9.8, 14.6, 16.2, 11.4, 6.3, 4.1, 3.6, 3.2];
+  var ACTION = 15;
+
+  var cv = document.getElementById('leadChart');
+  var g = cv.getContext('2d');
+  var W = cv.width, H = cv.height;
+  var padL = 74, padR = 26, padT = 26, padB = 62;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  var yMax = 20;
+
+  function px(i) { return padL + (plotW / (months.length - 1)) * i; }
+  function py(v) { return padT + plotH - (v / yMax) * plotH; }
+
+  g.clearRect(0, 0, W, H);
+
+  // horizontal gridlines and y axis labels
+  g.font = '22px -apple-system, "Segoe UI", sans-serif';
+  g.textBaseline = 'middle';
+  for (var v = 0; v <= yMax; v += 5) {
+    var y = py(v);
+    g.strokeStyle = '#e8eef1';
+    g.lineWidth = 2;
+    g.beginPath(); g.moveTo(padL, y); g.lineTo(W - padR, y); g.stroke();
+    g.fillStyle = '#7c8b95';
+    g.textAlign = 'right';
+    g.fillText(String(v), padL - 16, y);
+  }
+
+  // federal action level
+  g.strokeStyle = '#b4571f';
+  g.lineWidth = 2.5;
+  g.setLineDash([9, 7]);
+  g.beginPath(); g.moveTo(padL, py(ACTION)); g.lineTo(W - padR, py(ACTION)); g.stroke();
+  g.setLineDash([]);
+  g.fillStyle = '#b4571f';
+  g.textAlign = 'left';
+  g.font = '600 21px -apple-system, "Segoe UI", sans-serif';
+  g.fillText('Federal action level, 15 ppb', padL + 12, py(ACTION) - 20);
+
+  // area under the curve
+  var grad = g.createLinearGradient(0, padT, 0, padT + plotH);
+  grad.addColorStop(0, 'rgba(10,108,126,0.24)');
+  grad.addColorStop(1, 'rgba(10,108,126,0.02)');
+  g.beginPath();
+  g.moveTo(px(0), py(lead[0]));
+  for (var i = 1; i < lead.length; i++) g.lineTo(px(i), py(lead[i]));
+  g.lineTo(px(lead.length - 1), py(0));
+  g.lineTo(px(0), py(0));
+  g.closePath();
+  g.fillStyle = grad;
+  g.fill();
+
+  // the line itself
+  g.beginPath();
+  g.moveTo(px(0), py(lead[0]));
+  for (var j = 1; j < lead.length; j++) g.lineTo(px(j), py(lead[j]));
+  g.strokeStyle = '#0a6c7e';
+  g.lineWidth = 4;
+  g.lineJoin = 'round';
+  g.stroke();
+
+  // points, with the exceedance called out in the warning colour
+  for (var k = 0; k < lead.length; k++) {
+    var over = lead[k] > ACTION;
+    g.beginPath();
+    g.arc(px(k), py(lead[k]), over ? 9 : 6, 0, Math.PI * 2);
+    g.fillStyle = over ? '#b4571f' : '#0a6c7e';
+    g.fill();
+    g.strokeStyle = '#fff';
+    g.lineWidth = 3;
+    g.stroke();
+  }
+
+  // peak annotation
+  var pk = lead.indexOf(Math.max.apply(null, lead));
+  g.fillStyle = '#8f4416';
+  g.font = '600 23px -apple-system, "Segoe UI", sans-serif';
+  g.textAlign = 'center';
+  g.fillText('16.2', px(pk), py(lead[pk]) - 26);
+
+  // x axis
+  g.strokeStyle = '#c3ced4';
+  g.lineWidth = 2;
+  g.beginPath(); g.moveTo(padL, py(0)); g.lineTo(W - padR, py(0)); g.stroke();
+  g.fillStyle = '#55636f';
+  g.font = '22px -apple-system, "Segoe UI", sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'top';
+  for (var m = 0; m < months.length; m++) g.fillText(months[m], px(m), py(0) + 16);
+
+  // ---- Alerts form --------------------------------------------------------------
+  // The error is deliberately terse and machine-flavoured. Behavior #6 is what turns
+  // it into something a person can act on.
+  document.getElementById('alertForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var ad = document.getElementById('ad');
+    var adErr = document.getElementById('adErr');
+    var said = document.getElementById('said');
+    var ok = /^\d{1,5}\s+\S+/.test(ad.value.trim());
+
+    adErr.hidden = ok;
+    ad.classList.toggle('bad', !ok);
+    said.hidden = !ok;
+  });
+})();
+</script>
+</body>
+</html>
