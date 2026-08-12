@@ -153,9 +153,16 @@ npx serve demo
 python -m http.server 8000 --directory demo
 ```
 
-Content scripts do not run on `file://` URLs unless you explicitly tick **Allow access to file
-URLs** on the extension's details page in `chrome://extensions`. Serving over `http://localhost`
-avoids that entirely and is what the demo script assumes.
+> ### ⚠️ Serve the demo over HTTP, never `file://`
+>
+> Chrome does not run content scripts on `file://` URLs unless you explicitly tick **Allow access
+> to file URLs** on the extension's details page in `chrome://extensions`.
+>
+> Open the demo by double-clicking the HTML file and Lucid does **nothing at all** — no panel, no
+> speech, no error, nothing in the console. It is indistinguishable from a completely broken
+> extension, and it is a bad thing to discover with a camera running.
+>
+> Serving over `http://localhost` sidesteps it entirely, and is what the demo assumes.
 
 See [TESTING.md](TESTING.md) for what to click and what should happen.
 

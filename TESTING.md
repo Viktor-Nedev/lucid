@@ -18,9 +18,14 @@ npx serve demo                   # or: python -m http.server 8000 --directory de
 Load `dist/` at `chrome://extensions` with Developer mode on, then open
 `http://localhost:3000/index.html` (adjust the port to whatever your server printed).
 
-Use `http://localhost`, not a `file://` URL. Content scripts do not run on `file://` unless you
-tick **Allow access to file URLs** on the extension's details page, and forgetting that produces a
-silent no-op that looks exactly like a broken build.
+> ### ⚠️ `http://localhost`, never `file://`
+>
+> Chrome does not run content scripts on `file://` URLs unless you tick **Allow access to file
+> URLs** on the extension's details page. Forget that and every single behavior below fails
+> silently — no panel, no speech, no console error. It looks exactly like a broken build, and it
+> is the first thing to check if nothing at all appears to work.
+>
+> If you must use `file://`, tick the box first and reload the extension.
 
 After every rebuild, hit reload on the Lucid card in `chrome://extensions`. A stale content script
 is the second most common way to waste ten minutes.
