@@ -36,15 +36,6 @@ const MIN_HEIGHT = 60;
 /** Action ids are namespaced: every feature's handler sees every button press. */
 const ACTION_SPEAK = 'explain:speak';
 
-/**
- * The chart feature's badge layer sits on top of the charts Explain is most
- * likely to be pointed at, and capture.ts only knows to hide the panel and the
- * highlight layer - not this third surface. Hiding it here keeps our own
- * button out of the screenshot. The durable fix is for capture.ts to hide
- * every Lucid layer; until then this is the narrow version of it.
- */
-const CHART_BADGE_LAYER_ID = 'lucid-chart-badges';
-
 export function register(ctx: FeatureContext): void {
   let inFlight: StreamHandle | null = null;
   let speech: Speech | null = null;
@@ -227,17 +218,11 @@ export function register(ctx: FeatureContext): void {
     ctx.panel.beginStream('Explaining this', 'Looking at it...');
     result = '';
 
-    const badges = document.getElementById(CHART_BADGE_LAYER_ID);
     try {
-      let image;
-      let contextText: string;
-      if (badges) badges.style.visibility = 'hidden';
-      try {
-        image = await ctx.capture.captureElement(target);
-        contextText = ctx.capture.contextTextFor(target);
-      } finally {
-        if (badges) badges.style.visibility = '';
-      }
+      // capture.ts hides every Lucid overlay for the shot, the chart feature's
+      // badge layer included, so nothing of ours ends up in the pixels.
+      const image = await ctx.capture.captureElement(target);
+      const contextText = ctx.capture.contextTextFor(target);
 
       const cacheKey = await keyFor(target);
 

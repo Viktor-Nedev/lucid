@@ -16,11 +16,11 @@
  * canvas, which is the right trade: a spurious button is a small annoyance,
  * a missed chart is the whole feature failing.
  *
- * The badge layer is a THIRD piece of Lucid UI on the page. capture.ts knows
- * to hide the panel and the highlight layer during a screenshot, but it does
- * not know about this one - and the badge sits directly on top of the chart it
- * would photograph. Hence hideBadges() around every capture below. Any future
- * feature that captures a region while badges are visible has the same problem.
+ * The badge sits directly on top of the chart it would otherwise be
+ * photographed against. capture.ts hides every Lucid overlay for the duration
+ * of a screenshot - anything matching [data-lucid-overlay] or [id^="lucid-"]
+ * under documentElement - and this layer's id follows that convention, so it
+ * is covered centrally and needs no hiding of its own.
  */
 
 import type { ChartData } from '../../shared/messages.js';
@@ -74,14 +74,6 @@ export function register(ctx: FeatureContext): void {
     adoptExternalStyles(root, 'badge.css');
     document.documentElement.append(layer);
     return root;
-  }
-
-  function hideBadges(): void {
-    if (layer) layer.style.visibility = 'hidden';
-  }
-
-  function showBadges(): void {
-    if (layer) layer.style.visibility = '';
   }
 
   // --- detection ------------------------------------------------------------
@@ -264,16 +256,8 @@ export function register(ctx: FeatureContext): void {
     if (badge) badge.dataset.state = 'busy';
 
     try {
-      // The badge is drawn on top of the chart; capture would photograph it.
-      hideBadges();
-      let image;
-      let contextText: string;
-      try {
-        image = await ctx.capture.captureElement(el);
-        contextText = ctx.capture.contextTextFor(el);
-      } finally {
-        showBadges();
-      }
+      const image = await ctx.capture.captureElement(el);
+      const contextText = ctx.capture.contextTextFor(el);
 
       const cacheKey = await cacheKeyFor_(el);
       const { chart } = await ctx.send('ai.extractChartData', { image, contextText, cacheKey });
@@ -310,7 +294,6 @@ export function register(ctx: FeatureContext): void {
       if (badge) badge.dataset.state = 'done';
       await speakNarration(lastNarration);
     } catch (err) {
-      showBadges();
       if (badge) delete badge.dataset.state;
       ctx.panel.setError(err instanceof Error ? err.message : String(err));
     }
