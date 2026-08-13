@@ -335,6 +335,8 @@ class PanelImpl implements Panel {
 
   private state: PanelState = { title: '' };
   private streaming = false;
+  /** Serialised copy of the rendered table, so we can skip identical rebuilds. */
+  private tableSignature = '';
   private previousFocus: Element | null = null;
   private settings: Settings = DEFAULT_SETTINGS;
 
@@ -481,31 +483,129 @@ class PanelImpl implements Panel {
     this.errorEl.hidden = !error;
     this.errorEl.textContent = error ?? '';
 
-    this.tableSlot.replaceChildren();
-    if (table) this.tableSlot.appendChild(renderTable(table));
+    // Same reasoning as the action buttons below. A table has no focusable
+    // children, but rebuilding it throws a screen reader's cursor back to the
+    // start of it - so only rebuild when the data genuinely changed.
+    const tableSignature = table
+      ? JSON.stringify([table.caption ?? '', table.columns, table.rows])
+      : '';
+    if (tableSignature !== this.tableSignature) {
+      this.tableSignature = tableSignature;
+      this.tableSlot.replaceChildren();
+      if (table) this.tableSlot.appendChild(renderTable(table));
+    }
 
-    this.actionsEl.replaceChildren();
-    for (const action of actions ?? []) {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = action.primary ? 'action primary' : 'action';
-      button.append(document.createTextNode(action.label));
-      if (action.hint) {
-        const hint = document.createElement('span');
+    this.renderActions(actions ?? []);
+  }
+
+  /**
+   * Reconcile the action buttons against `actions`, keyed by id.
+   *
+   * This used to blow the whole row away and rebuild it on every render, which
+   * meant any feature calling update() at a high rate - a streaming caller
+   * doing per-chunk updates, say - destroyed the button a keyboard user was
+   * standing on and recreated it underneath them. Focus fell to the document.
+   * In a tool built for people who navigate by keyboard and screen reader,
+   * silently moving focus is close to the worst failure available, and the
+   * feature hitting it had been working around it by keeping its panel static.
+   *
+   * So: a button whose id is unchanged is never recreated. Its text is updated
+   * in place only if it actually differs, and the element - with its focus -
+   * survives. Only genuinely new ids create elements, and only removed ids
+   * destroy them.
+   */
+  private renderActions(actions: PanelAction[]): void {
+    const existing = new Map<string, HTMLButtonElement>();
+    for (const child of Array.from(this.actionsEl.children)) {
+      const id = child instanceof HTMLElement ? child.dataset['actionId'] : undefined;
+      if (id && child instanceof HTMLButtonElement) existing.set(id, child);
+    }
+
+    const desired: HTMLButtonElement[] = [];
+    for (const action of actions) {
+      const reused = existing.get(action.id);
+      if (reused) {
+        existing.delete(action.id);
+        this.updateActionButton(reused, action);
+        desired.push(reused);
+      } else {
+        desired.push(this.createActionButton(action));
+      }
+    }
+
+    // Anything left in `existing` is an action that no longer exists.
+    for (const stale of existing.values()) stale.remove();
+
+    // Only touch the DOM order if it is actually wrong. Re-inserting a node
+    // moves it, and moving a focused element blurs it - which would reintroduce
+    // the exact bug this method exists to fix.
+    const current = Array.from(this.actionsEl.children);
+    const orderMatches =
+      current.length === desired.length && desired.every((button, i) => current[i] === button);
+    if (orderMatches) return;
+
+    // activeElement inside a shadow root is read from the root, not document -
+    // document.activeElement would just report the host.
+    const focused = this.root.activeElement;
+    this.actionsEl.replaceChildren(...desired);
+
+    if (
+      focused instanceof HTMLElement &&
+      focused.isConnected &&
+      this.root.activeElement !== focused
+    ) {
+      focused.focus({ preventScroll: true });
+    }
+  }
+
+  private createActionButton(action: PanelAction): HTMLButtonElement {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset['actionId'] = action.id;
+
+    // One listener for the element's lifetime, reading the id at click time.
+    // Attaching per render would stack duplicate handlers onto a reused button.
+    button.addEventListener('click', () => {
+      const id = button.dataset['actionId'];
+      if (!id) return;
+      for (const handler of this.actionHandlers) {
+        try {
+          handler(id);
+        } catch (err) {
+          log.error('action handler threw', err);
+        }
+      }
+    });
+
+    this.updateActionButton(button, action);
+    return button;
+  }
+
+  /** Update a button in place, writing only what changed. */
+  private updateActionButton(button: HTMLButtonElement, action: PanelAction): void {
+    button.dataset['actionId'] = action.id;
+
+    const className = action.primary ? 'action primary' : 'action';
+    if (button.className !== className) button.className = className;
+
+    let hint = button.querySelector<HTMLElement>('.hint');
+    const labelNode = button.firstChild;
+
+    if (labelNode?.nodeType === Node.TEXT_NODE) {
+      if (labelNode.textContent !== action.label) labelNode.textContent = action.label;
+    } else {
+      button.prepend(document.createTextNode(action.label));
+    }
+
+    if (action.hint) {
+      if (!hint) {
+        hint = document.createElement('span');
         hint.className = 'hint';
-        hint.textContent = action.hint;
         button.appendChild(hint);
       }
-      button.addEventListener('click', () => {
-        for (const handler of this.actionHandlers) {
-          try {
-            handler(action.id);
-          } catch (err) {
-            log.error('action handler threw', err);
-          }
-        }
-      });
-      this.actionsEl.appendChild(button);
+      if (hint.textContent !== action.hint) hint.textContent = action.hint;
+    } else if (hint) {
+      hint.remove();
     }
   }
 
