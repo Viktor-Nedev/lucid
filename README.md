@@ -140,10 +140,13 @@ The demo page is entirely top-level, so it is unaffected.
 | Explain — `Alt`+`Shift`+`E` | **Landed** | Implemented; browser confirmation not yet relayed. |
 | Unlabeled field help | **Landed** | Implemented; browser confirmation not yet relayed. |
 | Reading mode — `Alt`+`Shift`+`L` | **Landed** | Landed in `af041ec` with a synced word highlight. |
-| Voice commands | **Stubbed** | `src/content/features/voice.ts` is still a stub. No default key. |
+| Voice commands | **Landed** | Verified against a scripted recogniser only — real speech has never been captured. No default key. |
 
 **Working** — demo-ready · **Landed** — code is in, not yet confirmed working end to end ·
 **Stubbed** — wired up, not yet implemented.
+
+All seven behaviors are now implemented and on `main`; nothing is stubbed. The remaining gap is
+verification, not code.
 
 ---
 

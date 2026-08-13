@@ -237,6 +237,12 @@ that it wants a house number followed by a street name. Restating the error code
 **On the demo page.** Wake Lucid, then say "read this", "explain this", "simplify this" with
 something selected or in view.
 
+> **Known verification gap.** Voice was verified against a scripted recogniser only — there was no
+> microphone in the build environment, so real speech has never been captured end to end. Dispatch
+> is confirmed for "read this", "read the page", "simplify this", "explain this", "stop" and
+> "help", unrecognised phrases list the available commands, and no route dispatches into itself.
+> What is unproven is the microphone path. Test that first.
+
 Voice wake has **no default key**, and neither does the panel toggle. Chrome honours only four
 suggested shortcuts per extension and Lucid spends all four on the behaviors above, so both are
 reached from the toolbar button or from a key you bind yourself at
@@ -291,5 +297,5 @@ Before recording or demoing, run this end to end on `demo/index.html`:
 Kept in one place only, to stop the two files drifting apart:
 see [Feature status in README.md](README.md#feature-status).
 
-At the time of writing, reading mode and voice are still stubs — expect those two sections above
-to fail until they land.
+All seven behaviors are implemented and on `main`. What varies now is how thoroughly each has been
+verified — the Notes column in that table is the part to read.

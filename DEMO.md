@@ -38,6 +38,22 @@ Do all of this **before** you start recording. Most of it cannot be fixed mid-ta
 - [ ] Check your output device and record a five-second test. Lucid's whole demo is audio — if the
       capture misses system audio you have nothing.
 
+**Voice — required, do not skip**
+
+- [ ] Bind a key for voice wake at `chrome://extensions/shortcuts`. Voice has **no default
+      shortcut** — Chrome only honours four suggested keys and all four are spent on the other
+      behaviors. If you plan to show voice at all, it needs a key before you start.
+- [ ] Say one command — "read this" — into a **real microphone**, on `http://localhost`, and
+      confirm it dispatches.
+
+This is not optional and it is not a formality. Voice was verified against a *scripted*
+recogniser: there was no microphone in the build environment, so real speech has never been
+captured end to end. The first real utterance into a real mic will happen either in your pre-flight
+or on camera, and you want it to be the former.
+
+Doing it now also clears Chrome's microphone permission prompt, which you very much do not want
+appearing mid-take.
+
 **Pre-warm the cache — this is the one people skip**
 
 - [ ] Run beats 4, 5, 6 and 7 once, exactly as scripted, so every AI response is cached.
