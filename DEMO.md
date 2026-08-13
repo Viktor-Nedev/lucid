@@ -236,8 +236,33 @@ form explanation and let it walk them.
 **Privacy line — say this one carefully, it is the question judges ask:**
 
 > One thing about this feature. It sends field *metadata* only — labels, names, types, the text
-> near the control. It never sends what you typed. We canary-tested that: put a marked value in a
-> field, capture the request, and the value is not in it.
+> near the control. It never sends what you typed.
+>
+> That is a design guarantee rather than a setting you can get wrong. The request carries the
+> form's structure. It has no field for the contents.
+
+*If a judge pushes on this, the answer is in the type.* `FormFieldDescriptor` in
+`src/shared/messages.ts` carries `id`, `tag`, `type`, `name`, `placeholder`, `labelText`,
+`ariaLabel`, `autocomplete`, `required` and `nearbyText` — and no value field of any kind. There
+is nowhere in the wire format to put what the user typed. That is checkable in ten seconds on
+camera and it is the strongest form of this answer.
+
+<!-- DELIBERATELY SOFTENED - do not "restore" the stronger wording without checking.
+
+     An earlier draft had the presenter say "we canary-tested that: put a marked value in a
+     field, capture the request, and the value is not in it."
+
+     That test was run and passed (canary values in three fields, values absent from the
+     captured payload), but on a single worker's self-report. Since this is a claim made to a
+     judge on camera, it is currently stated as what the contract guarantees by design, which
+     is true and defensible on its own.
+
+     It can be upgraded back to a tested claim once the result is independently reproduced.
+     Wait for that confirmation and the agreed wording before changing this line back.
+
+     Separately verified at the type level: FormFieldDescriptor in src/shared/messages.ts has
+     no value field, so the wire format cannot carry typed contents even in principle. That
+     holds regardless of how the canary re-run turns out. -->
 
 **If it fails:**
 
