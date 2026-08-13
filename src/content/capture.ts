@@ -32,13 +32,30 @@
 import type { CapturedImage, Rect } from '../shared/messages.js';
 import { LucidError, sendToBackground } from '../shared/messages.js';
 import { createLogger } from '../shared/logger.js';
-import { withHighlightsHidden } from './highlight.js';
-import { getPanel } from './panel.js';
 
 const log = createLogger('content:capture');
 
 /** Smallest region worth sending; below this there is nothing to describe. */
 const MIN_SIZE_PX = 8;
+
+/**
+ * Every Lucid-owned overlay host, hidden for the duration of a capture.
+ *
+ * Two ways to match, both supported so that adding an overlay never requires
+ * editing this file:
+ *
+ *   [data-lucid-overlay]  explicit opt-in - preferred for new overlays
+ *   [id^="lucid-"]        the existing convention, which every current host
+ *                         already follows (lucid-panel-host,
+ *                         lucid-overlay-host, lucid-chart-badges)
+ *
+ * This used to hide only the panel and the highlight layer, which meant each
+ * feature that added an overlay had to hide it again at its own call sites -
+ * chart and explain had both written their own copy of that, and explain's
+ * reached into chart's DOM by hardcoded id. Anything matching the selector is
+ * now hidden centrally, so a new overlay is covered for free.
+ */
+const OVERLAY_SELECTOR = '[data-lucid-overlay], [id^="lucid-"]';
 
 /** Resolve once the browser has actually painted the current frame. */
 function nextPaint(): Promise<void> {
@@ -62,20 +79,39 @@ function clampToViewport(rect: Rect): Rect {
   return { x: left, y: top, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
 }
 
-/** Send the measured rect to the worker with our UI hidden. */
-async function requestCrop(rect: Rect): Promise<CapturedImage> {
-  const panel = getPanel();
-  return panel.withHidden(() =>
-    withHighlightsHidden(async () => {
-      // The hide is a style change; it needs a paint too, or the panel is
-      // still in the pixels we are about to grab.
-      await nextPaint();
-      return sendToBackground('capture.region', {
-        rect,
-        devicePixelRatio: window.devicePixelRatio || 1,
-      });
-    }),
+/**
+ * Hide every Lucid overlay. Returns a restore function that puts each host
+ * back to the inline visibility it had, rather than blanket-clearing it - a
+ * layer that was already hidden for its own reasons must stay hidden.
+ */
+function hideOverlays(): () => void {
+  const hosts = Array.from(
+    document.documentElement.querySelectorAll<HTMLElement>(OVERLAY_SELECTOR),
   );
+  const previous = hosts.map((host) => [host, host.style.visibility] as const);
+
+  for (const host of hosts) host.style.visibility = 'hidden';
+  log.debug(`hid ${hosts.length} overlay host(s) for capture`);
+
+  return () => {
+    for (const [host, value] of previous) host.style.visibility = value;
+  };
+}
+
+/** Send the measured rect to the worker with all of our own UI hidden. */
+async function requestCrop(rect: Rect): Promise<CapturedImage> {
+  const restoreOverlays = hideOverlays();
+  try {
+    // The hide is a style change; it needs a paint too, or our own UI is still
+    // in the pixels we are about to grab.
+    await nextPaint();
+    return await sendToBackground('capture.region', {
+      rect,
+      devicePixelRatio: window.devicePixelRatio || 1,
+    });
+  } finally {
+    restoreOverlays();
+  }
 }
 
 /**

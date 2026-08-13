@@ -248,8 +248,16 @@ Four things it handles for you, each of which is a bug if skipped:
 3. **Device pixels** — the rect is measured in CSS pixels and multiplied by
    `devicePixelRatio` worker-side. Skip it and on any HiDPI screen you crop a
    quarter of the target from near its top-left corner.
-4. **Lucid's own UI** — the panel and highlights are hidden for the duration, or
-   the model ends up describing our panel back to the user.
+4. **Lucid's own UI** — every Lucid overlay is hidden for the duration, or the
+   model ends up describing our own panel back to the user.
+
+On that last point: capture hides everything matching
+`[data-lucid-overlay], [id^="lucid-"]` under `<html>`, which covers the panel,
+the highlight layer, and the chart badge layer today. **If you add an overlay,
+give its host an `id` starting `lucid-` or a `data-lucid-overlay` attribute and
+it is handled for free** — do not hide it yourself at your call sites. Two
+features had each written their own copy of that before this was centralised,
+and one of them reached into the other's DOM by hardcoded id to do it.
 
 `captureVisibleTab` is rate-limited by Chrome, so calls are serialised and
 retried; two features asking at once queue rather than one failing.
@@ -337,14 +345,30 @@ to them. `manifest.json` has one owner; ask rather than editing it.
   with a clear message; that is the platform, not a bug.
 - **Never send form values to a model.** Field metadata only. A form-explaining
   feature that exfiltrates a half-typed card number is worse than no feature.
-- **The AI layer is tree-shaken out of `dist/background.js` while all four
-  handlers are stubs.** That is expected. `npm run check` bundles it separately
-  so a bundling regression is caught before it blocks whoever fills in a handler.
+- **DOM scanning must pierce open shadow roots.** A plain `querySelectorAll`
+  stops at a shadow boundary, and real pages put content behind one — the
+  chartjs.org sample canvas lives in an open shadow root and is invisible to a
+  naive scan. Walk into `element.shadowRoot` when it is non-null.
+  `content/features/chart.ts` is the reference implementation. Closed roots
+  cannot be pierced by anyone, including us; that is the platform.
+- **`npm run check` bundles the AI layer separately.** It caught the SDK being
+  absent back when every handler was a stub and the whole layer was tree-shaken
+  out. The shipped bundle carries the SDK now that handlers are real, but the
+  check still guards the thing that actually bites: a runtime `import()`
+  sneaking into the service worker.
 
 ---
 
 ## Current state
 
-The foundation is complete and the extension loads, but **all four AI actions
-report "not implemented" until their handlers are filled in**. The panel opens,
-TTS speaks, highlights draw, and capture works today.
+| Feature | State |
+|---|---|
+| Simplify | working (`c25550b`) |
+| Chart data | working (`6b0a15c`) |
+| Explain | working (`71fe4ad`) |
+| Reading Mode | in flight |
+| Form fields | still a stub — `ai.inferFieldPurpose` reports not implemented |
+| Voice | stub; `src/offscreen/` intentionally empty until Phase 7 |
+
+The foundation underneath all of it — contract, AI layer with both providers,
+panel, TTS, highlights, capture, settings and cache — is complete and in use.
