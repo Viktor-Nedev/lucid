@@ -1,0 +1,788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Lucid design system</title>
+<link rel="stylesheet" href="../src/styles/tokens.css" />
+<style>
+  /* ---------------------------------------------------------------------
+     PREVIEW CHROME ONLY. Nothing in this block ships. Every component below
+     is painted by the real stylesheets in ../src/styles/, linked into the
+     shadow roots exactly the way the extension links them at runtime, so
+     what you see here is what the extension renders.
+     --------------------------------------------------------------------- */
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 24px 120px;
+    background: var(--lucid-bg);
+    color: var(--lucid-fg);
+    font: 15px/1.6 var(--lucid-font);
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+
+  /* Masthead */
+  header.top {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 44px 0 20px;
+  }
+  .mark {
+    width: 40px; height: 40px; flex: none; border-radius: 50%;
+    background:
+      radial-gradient(circle at 50% 50%, var(--lucid-accent) 0 5px, transparent 5px),
+      conic-gradient(from 200deg, var(--lucid-aurora-1), var(--lucid-aurora-2), var(--lucid-aurora-3), var(--lucid-aurora-1));
+    -webkit-mask: radial-gradient(circle at 50% 50%, #000 0 6px, transparent 6px 11px, #000 11px 17px, transparent 17px);
+            mask: radial-gradient(circle at 50% 50%, #000 0 6px, transparent 6px 11px, #000 11px 17px, transparent 17px);
+  }
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 640; letter-spacing: -0.024em; }
+  .tagline { margin: 2px 0 0; color: var(--lucid-muted); font-size: 0.95rem; }
+  .theme { margin-left: auto; display: flex; gap: 4px; padding: 4px;
+           background: var(--lucid-surface); border: 1px solid var(--lucid-border); border-radius: 999px; }
+  .theme button {
+    font: inherit; font-size: 0.82rem; padding: 6px 14px; border: 0; border-radius: 999px;
+    background: transparent; color: var(--lucid-muted); cursor: pointer;
+    transition: background var(--lucid-dur-2) var(--lucid-ease), color var(--lucid-dur-2) var(--lucid-ease);
+  }
+  .theme button[aria-pressed="true"] { background: var(--lucid-bg); color: var(--lucid-fg);
+    box-shadow: 0 1px 2px rgba(16,20,32,.12); }
+
+  /* Sections */
+  section { margin-top: 56px; }
+  .sec-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px; }
+  h2 { margin: 0; font-size: 1.12rem; font-weight: 620; letter-spacing: -0.014em; }
+  .num { font-size: 0.72rem; font-weight: 600; letter-spacing: .1em; color: var(--lucid-accent);
+         font-variant-numeric: tabular-nums; }
+  .note { margin: 0 0 20px; color: var(--lucid-muted); font-size: 0.92rem; max-width: 68ch; text-wrap: pretty; }
+
+  /* Controls used to drive the demos */
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; }
+  .controls button {
+    font: inherit; font-size: 0.85rem; font-weight: 500; padding: 8px 14px; cursor: pointer;
+    color: var(--lucid-fg); background: var(--lucid-bg);
+    border: 1px solid var(--lucid-border-strong); border-radius: var(--lucid-radius-sm);
+    transition: background var(--lucid-dur-1) var(--lucid-ease), border-color var(--lucid-dur-1) var(--lucid-ease),
+                transform var(--lucid-dur-1) var(--lucid-ease-out);
+  }
+  .controls button:hover { background: var(--lucid-surface); transform: translateY(-1px); }
+  .controls button:active { transform: none; }
+  .controls button[aria-pressed="true"] { border-color: var(--lucid-accent); color: var(--lucid-accent);
+    background: var(--lucid-accent-soft); }
+  .controls button:focus-visible { outline: 2px solid var(--lucid-accent); outline-offset: 2px; }
+
+  /* The mock page a component is shown against */
+  .stage {
+    position: relative;
+    padding: 28px 32px;
+    border: 1px solid var(--lucid-border);
+    border-radius: var(--lucid-radius);
+    background:
+      linear-gradient(var(--lucid-surface), var(--lucid-surface)) padding-box,
+      var(--lucid-bg);
+    overflow: hidden;
+  }
+  .stage.split { display: grid; grid-template-columns: 1fr auto; gap: 32px; align-items: start; }
+  .fakepage { color: var(--lucid-muted); font-size: 0.94rem; max-width: 52ch; }
+  .fakepage h3 { margin: 0 0 8px; font-size: 1.05rem; color: var(--lucid-fg); font-weight: 620; }
+  .fakepage p { margin: 0 0 12px; }
+
+  /* Reading Mode demo */
+  .reader { position: relative; max-width: 60ch; font-size: 1.06rem; line-height: 1.85; color: var(--lucid-fg); }
+  .reader p { margin: 0 0 14px; }
+  .reader p.para { padding: 2px 0; }
+
+  /* Chart mock for the badge demo */
+  .chartmock { position: relative; width: 340px; height: 190px; padding: 18px;
+    background: var(--lucid-bg); border: 1px solid var(--lucid-border); border-radius: 12px; }
+  .chartmock .bars { display: flex; align-items: flex-end; gap: 12px; height: 100%; }
+  .chartmock i { flex: 1; border-radius: 4px 4px 0 0; background: linear-gradient(var(--lucid-aurora-2), var(--lucid-accent)); opacity: .85; }
+
+  /* Token swatches */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(148px, 1fr)); gap: 12px; }
+  .sw { border: 1px solid var(--lucid-border); border-radius: var(--lucid-radius-sm); overflow: hidden; }
+  .sw .chip { height: 54px; }
+  .sw .meta { padding: 8px 10px; font-size: 0.76rem; }
+  .sw .meta b { display: block; font-weight: 600; }
+  .sw .meta span { color: var(--lucid-muted); font-family: ui-monospace, Menlo, monospace; font-size: 0.72rem; }
+
+  .motion { display: grid; gap: 10px; max-width: 620px; }
+  .motion .row { display: grid; grid-template-columns: 92px 1fr 84px; gap: 14px; align-items: center;
+                 font-size: 0.86rem; }
+  .motion code { font-family: ui-monospace, Menlo, monospace; font-size: 0.8rem; color: var(--lucid-accent); }
+  .motion .track { height: 6px; border-radius: 999px; background: var(--lucid-border); position: relative; overflow: hidden; }
+  .motion .track i { position: absolute; inset: 0 auto 0 0; width: 30%; border-radius: 999px;
+                     background: var(--lucid-accent); }
+
+  iframe { width: 100%; height: 640px; border: 1px solid var(--lucid-border);
+           border-radius: var(--lucid-radius); background: var(--lucid-bg); }
+
+  .hint-line { margin-top: 14px; font-size: 0.85rem; color: var(--lucid-muted); }
+  kbd { padding: 2px 6px; font-family: ui-monospace, Menlo, monospace; font-size: 0.8em;
+        border: 1px solid var(--lucid-border); border-bottom-width: 2px; border-radius: 5px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mark" aria-hidden="true"></div>
+    <div>
+      <h1>Lucid design system</h1>
+      <p class="tagline">Every component below is painted by the shipping stylesheets in <code>src/styles/</code>.</p>
+    </div>
+    <div class="theme" role="group" aria-label="Theme">
+      <button type="button" data-theme="light" aria-pressed="false">Light</button>
+      <button type="button" data-theme="dark" aria-pressed="false">Dark</button>
+      <button type="button" data-theme="system" aria-pressed="true">System</button>
+    </div>
+  </header>
+
+  <!-- ================================================================= -->
+  <section>
+    <div class="sec-head"><span class="num">01</span><h2>The panel</h2></div>
+    <p class="note">
+      One surface, every feature. The thinking state is the one that matters most:
+      it holds the screen for the whole model round trip, so it gets the aperture,
+      the spectrum ray, an aurora behind the title, and the shape of the answer
+      sketched in before the answer arrives. Nothing blinks and nothing strobes -
+      every loop is long, eased and alternating.
+    </p>
+    <div class="controls" id="panel-controls">
+      <button type="button" data-state="thinking" aria-pressed="true">Thinking</button>
+      <button type="button" data-state="streaming" aria-pressed="false">Streaming</button>
+      <button type="button" data-state="done" aria-pressed="false">Answered</button>
+      <button type="button" data-state="table" aria-pressed="false">Chart data</button>
+      <button type="button" data-state="setup" aria-pressed="false">Needs a key</button>
+      <button type="button" data-state="error" aria-pressed="false">Error</button>
+      <button type="button" data-action="replay">Replay entrance</button>
+      <button type="button" data-action="dismiss">Dismiss</button>
+    </div>
+    <div class="stage split">
+      <div class="fakepage">
+        <h3>Quarterly revenue by region</h3>
+        <p>
+          The chart above breaks revenue down across four regions for the last
+          four quarters. Figures are in millions of dollars and exclude
+          intra-company transfers.
+        </p>
+        <p>
+          This column stands in for whatever page the user is actually on. The
+          panel is a guest on it: it never takes focus captive, Escape always
+          dismisses it, and it returns focus wherever it came from.
+        </p>
+      </div>
+      <div id="panel-mount"></div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <section>
+    <div class="sec-head"><span class="num">02</span><h2>Reading Mode</h2></div>
+    <p class="note">
+      The word marker advances with the voice. It is one element that travels
+      rather than a box that vanishes and reappears, so the eye can follow it -
+      within a line it glides, and at a line break it cuts, because easing a box
+      diagonally across a paragraph looks like a bug. The solid bar sits below
+      the baseline, so nothing is ever painted across the words being read.
+    </p>
+    <div class="controls" id="read-controls">
+      <button type="button" data-action="play" aria-pressed="false">Read aloud</button>
+      <button type="button" data-action="pause">Pause</button>
+      <button type="button" data-action="stop">Stop</button>
+      <span style="display:flex;align-items:center;gap:10px;margin-left:8px;font-size:.85rem;color:var(--lucid-muted)">
+        Speaking <span id="eq-mount"></span>
+      </span>
+    </div>
+    <div class="stage">
+      <div class="reader" id="reader">
+        <p class="para">Lucid reads the page aloud and highlights each word as it is spoken, so someone who finds dense text hard to follow can listen and read at the same time.</p>
+        <p class="para">The paragraph being read carries a soft wash with a rail on its leading edge. The word inside it carries amber. Two marks, two meanings, and they never trade places.</p>
+      </div>
+    </div>
+    <p class="hint-line">Word marker and paragraph wash are styled by the shipping <code>src/styles/overlay.css</code>. The gliding is <code>src/design/reading-cursor.ts</code>.</p>
+  </section>
+
+  <!-- ================================================================= -->
+  <section>
+    <div class="sec-head"><span class="num">03</span><h2>The chart badge</h2></div>
+    <p class="note">
+      Pinned to charts and images Lucid can describe. A dashboard can carry a
+      dozen of these, so at rest it holds perfectly still - it earns attention
+      once when it arrives, then answers only to the pointer or the keyboard.
+      Hover it, or tab to it.
+    </p>
+    <div class="controls" id="badge-controls">
+      <button type="button" data-action="arrive">Replay arrival</button>
+      <button type="button" data-state="idle" aria-pressed="true">Idle</button>
+      <button type="button" data-state="busy" aria-pressed="false">Describing</button>
+      <button type="button" data-state="done" aria-pressed="false">Described</button>
+    </div>
+    <div class="stage">
+      <div class="chartmock">
+        <div class="bars" aria-hidden="true">
+          <i style="height:42%"></i><i style="height:68%"></i><i style="height:55%"></i>
+          <i style="height:88%"></i><i style="height:71%"></i><i style="height:96%"></i>
+        </div>
+        <div id="badge-mount"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================================================================= -->
+  <section>
+    <div class="sec-head"><span class="num">04</span><h2>Settings</h2></div>
+    <p class="note">
+      The switch and the speech-rate slider are the two controls a demo actually
+      puts a cursor on, so they are the two that get the attention. Saving a key
+      is the one moment on this page that deserves a flourish.
+    </p>
+    <iframe id="options-frame" title="Settings preview"></iframe>
+  </section>
+
+  <!-- ================================================================= -->
+  <section>
+    <div class="sec-head"><span class="num">05</span><h2>Tokens</h2></div>
+    <p class="note">
+      Ink and paper carry the interface. One accent for anything interactive.
+      The aurora is spent only on "the model is working", so its appearance
+      always means something. Amber belongs to reading and to nothing else.
+    </p>
+    <div class="swatches" id="swatches"></div>
+
+    <h3 style="margin:32px 0 4px;font-size:.95rem;font-weight:620">Motion scale</h3>
+    <p class="note">Four durations, four curves, reused everywhere. Restraint is the point: one thing moves at a time.</p>
+    <div class="motion" id="motion"></div>
+    <p class="hint-line">
+      To check the reduced-motion fallbacks: DevTools &rarr; <kbd>Rendering</kbd> &rarr;
+      Emulate CSS <code>prefers-reduced-motion: reduce</code>. Every animation here
+      turns off; none of the information does.
+    </p>
+  </section>
+
+</div>
+
+<script type="module">
+/* =======================================================================
+   Preview harness. Mounts each component the way the extension does -
+   a shadow root, the component's structural CSS, then the design-owned
+   stylesheet adopted after it - and drives the states by hand.
+   ======================================================================= */
+
+/* The token blocks, needed only so the theme buttons can force a palette.
+   Setting them inline on a host beats the :host rule inside the sheet and
+   cascades into its shadow tree. "System" clears them and the media query
+   in the real stylesheet takes over again. */
+const LIGHT = `
+  --lucid-bg:#ffffff; --lucid-surface:#f5f7fb; --lucid-fg:#0f1218; --lucid-muted:#59617a;
+  --lucid-border:#e3e6ef; --lucid-border-strong:#c9d0e0; --lucid-accent:#2a46d8;
+  --lucid-accent-fg:#ffffff; --lucid-accent-soft:rgba(42,70,216,.1);
+  --lucid-accent-ring:rgba(42,70,216,.35); --lucid-error:#9a3b22;
+  --lucid-error-soft:rgba(154,59,34,.08); --lucid-ok:#10684a; --lucid-ok-soft:rgba(16,104,74,.1);
+  --lucid-aurora-1:#6e5cff; --lucid-aurora-2:#17b8e8; --lucid-aurora-3:#2fd9a6;
+  --lucid-read:#ffc53d; --lucid-read-deep:#8a5300;
+  --lucid-halo-dark:rgba(8,10,16,.42); --lucid-halo-light:rgba(255,255,255,.92);
+  --lucid-shadow:0 1px 2px rgba(16,20,32,.06),0 8px 24px -6px rgba(16,20,32,.14),0 24px 56px -20px rgba(16,20,32,.22);
+  --lucid-hairline:inset 0 1px 0 rgba(255,255,255,.8);
+`;
+const DARK = `
+  --lucid-bg:#14171f; --lucid-surface:#1b1f29; --lucid-fg:#edf0f7; --lucid-muted:#9aa3b8;
+  --lucid-border:#2a303d; --lucid-border-strong:#3a4252; --lucid-accent:#8aaaff;
+  --lucid-accent-fg:#0b0e15; --lucid-accent-soft:rgba(138,170,255,.16);
+  --lucid-accent-ring:rgba(138,170,255,.45); --lucid-error:#ffb59b;
+  --lucid-error-soft:rgba(255,181,155,.1); --lucid-ok:#6fdcae; --lucid-ok-soft:rgba(111,220,174,.12);
+  --lucid-aurora-1:#8d7cff; --lucid-aurora-2:#3fd0ff; --lucid-aurora-3:#4df0bc;
+  --lucid-read:#ffce55; --lucid-read-deep:#ffe1a0;
+  --lucid-halo-dark:rgba(0,0,0,.6); --lucid-halo-light:rgba(255,255,255,.7);
+  --lucid-shadow:0 2px 6px rgba(0,0,0,.5),0 20px 48px -12px rgba(0,0,0,.65);
+  --lucid-hairline:inset 0 1px 0 rgba(255,255,255,.06);
+`;
+
+/* The structural CSS panel.ts ships built in. Reproduced here - and ONLY the
+   structural parts - so the preview stacks the design stylesheet on top of the
+   same foundation the extension does. Colours deliberately come from the
+   design sheet, not from here. */
+const PANEL_STRUCTURE = `
+:host { all: initial; display: block; color-scheme: light dark; }
+:host([hidden]) { display: none; }
+.panel { box-sizing: border-box; display: flex; flex-direction: column;
+  width: min(420px, 100%); max-height: 640px;
+  background: var(--lucid-bg); color: var(--lucid-fg);
+  border: 1px solid var(--lucid-border); border-radius: var(--lucid-radius, 12px);
+  box-shadow: var(--lucid-shadow); font-family: var(--lucid-font, system-ui, sans-serif);
+  font-size: var(--lucid-font-size, 15px); line-height: 1.55; }
+.header { display: flex; align-items: flex-start; gap: 8px; padding: 12px 12px 8px 16px;
+  border-bottom: 1px solid var(--lucid-border); }
+.title { flex: 1; margin: 0; font-size: 1em; font-weight: 600; line-height: 1.3; }
+.close { flex: none; width: 32px; height: 32px; display: grid; place-items: center; padding: 0;
+  font: inherit; font-size: 18px; line-height: 1; color: var(--lucid-muted); background: transparent;
+  border: 1px solid transparent; border-radius: 8px; cursor: pointer; }
+.content { padding: 12px 16px 4px; overflow-y: auto; overscroll-behavior: contain; }
+.status { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--lucid-muted); font-size: .9em; }
+.status[hidden] { display: none; }
+.spinner { width: 12px; height: 12px; flex: none; border-radius: 50%; }
+.body { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.body:empty { display: none; }
+.error { margin: 8px 0 0; padding: 10px 12px; color: var(--lucid-error);
+  border: 1px solid currentColor; border-radius: 8px; font-size: .95em; }
+.error[hidden] { display: none; }
+table { width: 100%; margin-top: 12px; border-collapse: collapse; font-size: .92em; }
+caption { text-align: left; padding-bottom: 6px; color: var(--lucid-muted); }
+th, td { padding: 6px 8px; border: 1px solid var(--lucid-border); text-align: left; vertical-align: top; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 12px 16px; }
+.actions:empty { display: none; }
+button.action { font: inherit; font-size: .92em; padding: 7px 12px; color: var(--lucid-fg);
+  background: transparent; border: 1px solid var(--lucid-border); border-radius: 8px; cursor: pointer; }
+button.action.primary { color: var(--lucid-accent-fg); background: var(--lucid-accent); border-color: var(--lucid-accent); }
+.hint { margin-left: 6px; color: var(--lucid-muted); font-size: .85em; }
+`;
+
+const themedHosts = [];
+function registerHost(el) { themedHosts.push(el); applyTheme(currentTheme); }
+
+let currentTheme = 'system';
+function applyTheme(mode) {
+  currentTheme = mode;
+  const tokens = mode === 'light' ? LIGHT : mode === 'dark' ? DARK : '';
+  for (const el of [document.documentElement, ...themedHosts]) {
+    el.setAttribute('style', tokens);
+  }
+  document.documentElement.style.colorScheme = mode === 'system' ? 'light dark' : mode;
+  for (const b of document.querySelectorAll('.theme button')) {
+    b.setAttribute('aria-pressed', String(b.dataset.theme === mode));
+  }
+}
+document.querySelector('.theme').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (b) applyTheme(b.dataset.theme);
+});
+
+function pressOnly(container, el) {
+  for (const b of container.querySelectorAll('button[data-state]')) {
+    b.setAttribute('aria-pressed', String(b === el));
+  }
+}
+
+/* ---------------------------------------------------------------------
+   01 - THE PANEL
+   --------------------------------------------------------------------- */
+const panelHost = document.createElement('div');
+panelHost.style.cssText = '';
+document.getElementById('panel-mount').appendChild(panelHost);
+const panelRoot = panelHost.attachShadow({ mode: 'open' });
+panelRoot.innerHTML = `
+  <style>${PANEL_STRUCTURE}</style>
+  <link rel="stylesheet" href="../src/styles/panel.css" />
+  <style>
+    /* Preview only: the real panel is position: fixed in the corner of a page. */
+    :host { position: relative !important; inset: auto !important; }
+  </style>
+  <div class="panel" role="dialog" aria-modal="false" aria-labelledby="lucid-title">
+    <div class="header">
+      <h2 class="title" id="lucid-title" tabindex="-1">Explaining this chart</h2>
+      <button class="close" aria-label="Close Lucid panel">&times;</button>
+    </div>
+    <div class="content">
+      <p class="status"><span class="spinner" aria-hidden="true"></span><span class="status-text">Reading the chart…</span></p>
+      <div class="body"></div>
+      <p class="error" hidden></p>
+      <div class="table-slot"></div>
+    </div>
+    <div class="actions"></div>
+  </div>
+`;
+registerHost(panelHost);
+
+const P = {
+  host: panelHost,
+  title: panelRoot.querySelector('.title'),
+  status: panelRoot.querySelector('.status'),
+  statusText: panelRoot.querySelector('.status-text'),
+  spinner: panelRoot.querySelector('.spinner'),
+  body: panelRoot.querySelector('.body'),
+  error: panelRoot.querySelector('.error'),
+  tableSlot: panelRoot.querySelector('.table-slot'),
+  actions: panelRoot.querySelector('.actions'),
+};
+
+const ANSWER =
+  'Revenue climbed in every region except EMEA, which slipped 4% after a strong ' +
+  'Q2. North America contributed most of the growth, adding $18M across the ' +
+  'second half. The gap between the best and worst performing region narrowed ' +
+  'from $31M to $22M over the year.';
+
+function setActions(items) {
+  P.actions.innerHTML = '';
+  for (const [label, hint, primary] of items) {
+    const b = document.createElement('button');
+    b.className = 'action' + (primary ? ' primary' : '');
+    b.append(document.createTextNode(label));
+    if (hint) {
+      const h = document.createElement('span');
+      h.className = 'hint';
+      h.textContent = hint;
+      b.appendChild(h);
+    }
+    P.actions.appendChild(b);
+  }
+}
+
+let streamTimer = 0;
+function clearStream() { clearInterval(streamTimer); streamTimer = 0; }
+
+function setPanelState(state) {
+  clearStream();
+  P.host.hidden = false;
+  P.error.hidden = true;
+  P.error.removeAttribute('data-variant');
+  P.tableSlot.innerHTML = '';
+  P.body.textContent = '';
+  P.spinner.style.display = '';
+  P.status.hidden = false;
+
+  if (state === 'thinking') {
+    P.host.setAttribute('aria-busy', 'true');
+    P.title.textContent = 'Explaining this chart';
+    P.statusText.textContent = 'Reading the chart…';
+    setActions([]);
+  }
+
+  if (state === 'streaming') {
+    P.host.setAttribute('aria-busy', 'true');
+    P.title.textContent = 'Explaining this chart';
+    P.statusText.textContent = 'Writing…';
+    setActions([]);
+    let i = 0;
+    streamTimer = setInterval(() => {
+      i += 3;
+      P.body.textContent = ANSWER.slice(0, i);
+      if (i >= ANSWER.length) { clearStream(); setPanelState('done'); }
+    }, 26);
+  }
+
+  if (state === 'done') {
+    P.host.setAttribute('aria-busy', 'false');
+    P.title.textContent = 'Explaining this chart';
+    P.status.hidden = true;
+    P.body.textContent = ANSWER;
+    setActions([['Read aloud', 'Alt+Shift+R', true], ['Simplify', 'Alt+Shift+S', false], ['Copy', '', false]]);
+  }
+
+  if (state === 'table') {
+    P.host.setAttribute('aria-busy', 'false');
+    P.title.textContent = 'Quarterly revenue by region';
+    P.status.hidden = true;
+    P.body.textContent = 'Four regions over four quarters, in millions of dollars.';
+    const rows = [['North America', '82', '91', '104', '118'], ['EMEA', '61', '74', '70', '71'],
+                  ['APAC', '44', '52', '58', '66'], ['LATAM', '19', '22', '26', '29']];
+    const t = document.createElement('table');
+    t.innerHTML =
+      '<caption>Quarterly revenue by region</caption>' +
+      '<thead><tr><th scope="col">Region</th><th scope="col">Q1</th><th scope="col">Q2</th>' +
+      '<th scope="col">Q3</th><th scope="col">Q4</th></tr></thead><tbody>' +
+      rows.map((r) => '<tr><th scope="row">' + r[0] + '</th>' +
+        r.slice(1).map((c) => '<td>' + c + '</td>').join('') + '</tr>').join('') +
+      '</tbody>';
+    P.tableSlot.appendChild(t);
+    setActions([['Read aloud', 'Alt+Shift+R', true], ['Copy as CSV', '', false]]);
+  }
+
+  if (state === 'setup') {
+    P.host.setAttribute('aria-busy', 'false');
+    P.title.textContent = 'One thing first';
+    P.status.hidden = true;
+    P.error.hidden = false;
+    P.error.dataset.variant = 'setup';
+    P.error.textContent = 'Lucid needs an API key before it can explain anything. It is stored only on this computer.';
+    setActions([['Open settings', '', true], ['Not now', '', false]]);
+  }
+
+  if (state === 'error') {
+    P.host.setAttribute('aria-busy', 'false');
+    P.title.textContent = 'That did not work';
+    P.status.hidden = true;
+    P.error.hidden = false;
+    P.error.textContent = 'The model did not respond in time. The page is unchanged - nothing was sent twice.';
+    setActions([['Try again', '', true], ['Dismiss', 'Esc', false]]);
+  }
+}
+
+document.getElementById('panel-controls').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.state) { pressOnly(e.currentTarget, b); setPanelState(b.dataset.state); }
+  if (b.dataset.action === 'dismiss') P.host.hidden = true;
+  if (b.dataset.action === 'replay') {
+    P.host.hidden = true;
+    // One frame hidden is enough for the entrance animation to re-arm.
+    requestAnimationFrame(() => requestAnimationFrame(() => { P.host.hidden = false; }));
+  }
+});
+panelRoot.querySelector('.close').addEventListener('click', () => { P.host.hidden = true; });
+setPanelState('thinking');
+
+/* ---------------------------------------------------------------------
+   02 - READING MODE
+   The marker and the wash are styled by overlay.css; this only supplies the
+   movement, mirroring what src/design/reading-cursor.ts does at runtime.
+   --------------------------------------------------------------------- */
+const reader = document.getElementById('reader');
+const overlayHost = document.createElement('div');
+overlayHost.setAttribute('aria-hidden', 'true');
+overlayHost.style.cssText = '';
+reader.appendChild(overlayHost);
+const overlayRoot = overlayHost.attachShadow({ mode: 'open' });
+overlayRoot.innerHTML = `
+  <style>
+    /* Structural, mirroring highlight.ts. */
+    :host { position: absolute; inset: 0; pointer-events: none; }
+    .box { position: absolute; box-sizing: border-box; pointer-events: none; }
+  </style>
+  <link rel="stylesheet" href="../src/styles/overlay.css" />
+  <style>
+    /* Preview only, and it must come after overlay.css. These two boxes
+       persist and are moved, so the one-shot appear animations are switched
+       off - left on, their fill-mode would pin opacity at 1 and the marker
+       could never hide. The transitions below are what reading-cursor.ts
+       does at runtime. */
+    .word, .fill { animation: none !important; }
+    .word { transition: transform 110ms cubic-bezier(.22,1,.36,1), width 110ms cubic-bezier(.22,1,.36,1),
+                        height 110ms cubic-bezier(.22,1,.36,1), opacity 140ms ease; }
+    .word[data-jump="true"] { transition: opacity 140ms ease; }
+    .word[data-hidden="true"], .fill[data-hidden="true"] { opacity: 0; }
+    .word[data-paused="true"] { opacity: .45; }
+    @media (prefers-reduced-motion: reduce) { .word { transition: opacity 140ms ease; } }
+  </style>
+  <div class="box fill" data-hidden="true"></div>
+  <div class="box word" data-hidden="true"></div>
+`;
+registerHost(overlayHost);
+const wordBox = overlayRoot.querySelector('.word');
+const fillBox = overlayRoot.querySelector('.fill');
+
+/* Wrap every word so we have something to measure. */
+const wordSpans = [];
+for (const p of reader.querySelectorAll('p.para')) {
+  const words = p.textContent.split(/(\s+)/);
+  p.textContent = '';
+  for (const w of words) {
+    if (!w.trim()) { p.appendChild(document.createTextNode(w)); continue; }
+    const s = document.createElement('span');
+    s.textContent = w;
+    p.appendChild(s);
+    wordSpans.push({ el: s, para: p });
+  }
+}
+
+let readIndex = -1, readTimer = 0, paused = false;
+
+function placeBox(box, rect, base, jump) {
+  box.dataset.jump = jump ? 'true' : 'false';
+  box.style.width = (rect.width) + 'px';
+  box.style.height = (rect.height) + 'px';
+  box.style.transform = `translate(${rect.left - base.left}px, ${rect.top - base.top}px)`;
+  box.dataset.hidden = 'false';
+  if (jump) requestAnimationFrame(() => requestAnimationFrame(() => { box.dataset.jump = 'false'; }));
+}
+
+function showWord(i) {
+  const hit = wordSpans[i];
+  if (!hit) return stopReading();
+  const base = reader.getBoundingClientRect();
+  const rect = hit.el.getBoundingClientRect();
+  const previous = wordBox.getBoundingClientRect();
+  // A move of more than about a line is a line break: cut, do not glide.
+  const jump = wordBox.dataset.hidden === 'true' || Math.abs(rect.top - previous.top) > rect.height * 1.4;
+  placeBox(wordBox, rect, base, jump);
+  placeBox(fillBox, hit.para.getBoundingClientRect(), base, true);
+}
+
+function tick() {
+  if (paused) return;
+  readIndex += 1;
+  if (readIndex >= wordSpans.length) return stopReading();
+  showWord(readIndex);
+  readTimer = setTimeout(tick, 235);
+}
+function startReading() {
+  stopReading();
+  paused = false;
+  readIndex = -1;
+  wordBox.dataset.paused = 'false';
+  setEq('speaking');
+  tick();
+}
+function stopReading() {
+  clearTimeout(readTimer);
+  readTimer = 0;
+  paused = false;
+  wordBox.dataset.hidden = 'true';
+  fillBox.dataset.hidden = 'true';
+  setEq('paused');
+  document.querySelector('#read-controls [data-action="play"]').setAttribute('aria-pressed', 'false');
+}
+document.getElementById('read-controls').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.action === 'play') { b.setAttribute('aria-pressed', 'true'); startReading(); }
+  if (b.dataset.action === 'pause') {
+    paused = !paused;
+    wordBox.dataset.paused = String(paused);
+    setEq(paused ? 'paused' : 'speaking');
+    if (!paused) tick();
+  }
+  if (b.dataset.action === 'stop') stopReading();
+});
+window.addEventListener('resize', () => { if (readIndex >= 0 && readTimer) showWord(readIndex); });
+
+/* The speaking indicator, styled by panel.css. */
+const eqHost = document.createElement('span');
+document.getElementById('eq-mount').appendChild(eqHost);
+const eqRoot = eqHost.attachShadow({ mode: 'open' });
+eqRoot.innerHTML = `
+  <link rel="stylesheet" href="../src/styles/panel.css" />
+  <style>:host { display: inline-block; }</style>
+  <span class="lucid-eq" data-state="paused" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span>
+`;
+registerHost(eqHost);
+function setEq(state) { eqRoot.querySelector('.lucid-eq').dataset.state = state; }
+
+/* ---------------------------------------------------------------------
+   03 - THE CHART BADGE
+   --------------------------------------------------------------------- */
+const badgeHost = document.createElement('div');
+document.getElementById('badge-mount').appendChild(badgeHost);
+const badgeRoot = badgeHost.attachShadow({ mode: 'open' });
+badgeRoot.innerHTML = `
+  <style>
+    /* Structural, mirroring chart.ts BADGE_CSS. */
+    .badge { position: fixed; width: 32px; height: 32px; padding: 0; display: grid;
+      place-items: center; pointer-events: auto; cursor: pointer; line-height: 0; }
+    .badge svg { width: 17px; height: 17px; fill: currentColor; }
+  </style>
+  <link rel="stylesheet" href="../src/styles/badge.css" />
+  <style>
+    /* Preview only: the real badge is fixed and placed by inline top/left. */
+    .badge { position: absolute !important; right: 12px; top: 12px; }
+  </style>
+  <button class="badge" type="button" aria-label="Read the data behind this chart"
+          title="Read this chart with Lucid">
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <rect x="2" y="9" width="3" height="5" rx="1"/>
+      <rect x="6.5" y="5" width="3" height="9" rx="1"/>
+      <rect x="11" y="2" width="3" height="12" rx="1"/>
+    </svg>
+  </button>
+`;
+registerHost(badgeHost);
+let badge = badgeRoot.querySelector('.badge');
+
+document.getElementById('badge-controls').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.action === 'arrive') {
+    // The arrival cue runs on creation, so replaying it means re-creating the
+    // element - which is exactly what the feature does when a chart scrolls
+    // back into view.
+    const fresh = badge.cloneNode(true);
+    badge.replaceWith(fresh);
+    badge = fresh;
+  }
+  if (b.dataset.state) {
+    pressOnly(e.currentTarget, b);
+    if (b.dataset.state === 'idle') badge.removeAttribute('data-state');
+    else badge.dataset.state = b.dataset.state;
+  }
+});
+
+/* ---------------------------------------------------------------------
+   04 - SETTINGS, in an iframe so options.css can own a whole document.
+   --------------------------------------------------------------------- */
+document.getElementById('options-frame').srcdoc = `
+<!doctype html><html lang="en"><head><meta charset="utf-8" />
+<link rel="stylesheet" href="../src/styles/options.css" />
+<style>body { padding: 28px 24px 40px; }</style>
+</head><body>
+<h1>Lucid settings</h1>
+<p class="lede">An AI accessibility layer for the web.</p>
+<form>
+  <fieldset><legend>AI provider</legend>
+    <div class="field">
+      <label for="provider">Provider</label>
+      <select id="provider"><option>Claude (Anthropic)</option><option>Gemini (Google)</option></select>
+    </div>
+    <div class="field">
+      <label for="key">Anthropic API key</label>
+      <input id="key" type="password" placeholder="sk-ant-..." value="sk-ant-demo-key" />
+      <p class="help">Stored only on this computer.</p>
+    </div>
+    <div class="actions"><button type="button" class="primary" id="save">Save key</button>
+    <button type="button" id="fail">Test connection</button></div>
+    <p id="status" role="status" aria-live="polite"></p>
+  </fieldset>
+  <fieldset><legend>Reading</legend>
+    <div class="field">
+      <label for="rate">Speech rate: <output id="rate-out">1.0</output>x</label>
+      <input id="rate" type="range" min="0.5" max="2" step="0.1" value="1" />
+    </div>
+    <div class="field row">
+      <input id="site" type="checkbox" checked /><label for="site">Enable Lucid on this site</label>
+    </div>
+    <div class="field row">
+      <input id="hc" type="checkbox" /><label for="hc">Always use high-contrast panel styling</label>
+    </div>
+  </fieldset>
+</form>
+<script>
+  const rate = document.getElementById('rate'), out = document.getElementById('rate-out');
+  const fill = (el) => el.style.setProperty('--pct',
+    ((el.value - el.min) / (el.max - el.min)) * 100 + '%');
+  rate.addEventListener('input', () => { out.textContent = Number(rate.value).toFixed(1); fill(rate); });
+  fill(rate);
+  const status = document.getElementById('status');
+  const show = (tone, text) => {
+    status.removeAttribute('data-tone'); status.textContent = '';
+    requestAnimationFrame(() => { status.dataset.tone = tone; status.textContent = text; });
+  };
+  document.getElementById('save').addEventListener('click', () => show('ok', 'Key saved. Lucid is ready.'));
+  document.getElementById('fail').addEventListener('click', () => show('error', 'That key was rejected. Check it and try again.'));
+<\/script>
+</body></html>`;
+
+/* ---------------------------------------------------------------------
+   05 - TOKENS
+   --------------------------------------------------------------------- */
+const SWATCHES = [
+  ['Surface', '--lucid-bg'], ['Raised', '--lucid-surface'], ['Ink', '--lucid-fg'],
+  ['Muted ink', '--lucid-muted'], ['Hairline', '--lucid-border'], ['Accent', '--lucid-accent'],
+  ['Aurora 1', '--lucid-aurora-1'], ['Aurora 2', '--lucid-aurora-2'], ['Aurora 3', '--lucid-aurora-3'],
+  ['Reading', '--lucid-read'], ['Trouble', '--lucid-error'], ['Confirmed', '--lucid-ok'],
+];
+document.getElementById('swatches').innerHTML = SWATCHES.map(([name, v]) => `
+  <div class="sw">
+    <div class="chip" style="background: var(${v})"></div>
+    <div class="meta"><b>${name}</b><span>${v}</span></div>
+  </div>`).join('');
+
+const MOTION = [
+  ['120ms', '--lucid-dur-1', 'micro - hover, knob, press'],
+  ['180ms', '--lucid-dur-2', 'default - most state changes'],
+  ['240ms', '--lucid-dur-3', 'emphasis - reveals, success'],
+  ['380ms', '--lucid-dur-4', 'the panel entrance, and nothing else'],
+];
+document.getElementById('motion').innerHTML = MOTION.map(([d, v, why]) => `
+  <div class="row">
+    <code>${d}</code>
+    <div class="track"><i style="animation: slide ${d} var(--lucid-ease-out) infinite alternate"></i></div>
+    <span style="color:var(--lucid-muted);font-size:.8rem">${why}</span>
+  </div>`).join('');
+const kf = document.createElement('style');
+kf.textContent = '@keyframes slide { from { transform: translateX(0) } to { transform: translateX(230%) } }';
+document.head.appendChild(kf);
+
+applyTheme('system');
+</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+/*
+ * Lucid design tokens - the canonical source of truth.
+ * ===========================================================================
+ *
+ * WHY THIS FILE IS DUPLICATED INTO THE OTHERS
+ *
+ * panel.css and overlay.css are adopted into shadow roots via
+ * `new CSSStyleSheet().replace(css)`, and replace() throws away @import rules.
+ * A shadow root also cannot see :root. So each shadow stylesheet carries its
+ * own copy of the token block on :host, marked with the same banner as below.
+ * Edit a value here, then mirror it. Only the blocks between the banners are
+ * duplicated - everything else is unique per file.
+ *
+ * This file is still shipped and is linked directly by the options page,
+ * which is an ordinary document and can use :root.
+ *
+ * THE SYSTEM IN ONE PARAGRAPH
+ *
+ * Ink and paper carry the interface; colour is spent only where it means
+ * something. One accent for anything interactive. A three-stop aurora used
+ * exclusively for "the model is working" - never decoration, never a border,
+ * so its appearance always tells the user something. Amber belongs to reading
+ * and nothing else, so a highlight is unmistakable. Motion is fast and eased,
+ * and only one thing moves at a time.
+ */
+
+:root {
+  /* ── LUCID TOKENS ─────────────────────────────────────────── (light) ── */
+
+  /* Surface & ink */
+  --lucid-bg: #ffffff;
+  --lucid-surface: #f5f7fb;
+  --lucid-fg: #0f1218;
+  --lucid-muted: #59617a;
+  --lucid-border: #e3e6ef;
+  --lucid-border-strong: #c9d0e0;
+
+  /* One accent, for anything interactive */
+  --lucid-accent: #2a46d8;
+  --lucid-accent-fg: #ffffff;
+  --lucid-accent-soft: rgba(42, 70, 216, 0.1);
+  --lucid-accent-ring: rgba(42, 70, 216, 0.35);
+
+  /* Trouble: clay, not siren red */
+  --lucid-error: #9a3b22;
+  --lucid-error-soft: rgba(154, 59, 34, 0.08);
+
+  /* Confirmation */
+  --lucid-ok: #10684a;
+  --lucid-ok-soft: rgba(16, 104, 74, 0.1);
+
+  /* Aurora - reserved for the thinking state */
+  --lucid-aurora-1: #6e5cff;
+  --lucid-aurora-2: #17b8e8;
+  --lucid-aurora-3: #2fd9a6;
+
+  /* Reading - amber means "this is being read aloud", nowhere else */
+  --lucid-read: #ffc53d;
+  --lucid-read-deep: #8a5300;
+  --lucid-read-wash: rgba(255, 197, 61, 0.2);
+
+  /* Form */
+  --lucid-radius: 16px;
+  --lucid-radius-sm: 10px;
+  --lucid-radius-xs: 7px;
+  --lucid-font-size: 15px;
+  --lucid-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* Elevation: three layers, so the panel sits in the page rather than on it */
+  --lucid-shadow:
+    0 1px 2px rgba(16, 20, 32, 0.06),
+    0 8px 24px -6px rgba(16, 20, 32, 0.14),
+    0 24px 56px -20px rgba(16, 20, 32, 0.22);
+  --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+
+  /* Motion scale. Nothing outside this scale; everything eased, never linear. */
+  --lucid-dur-1: 120ms;   /* micro: hover, toggle knob */
+  --lucid-dur-2: 180ms;   /* default: most state changes */
+  --lucid-dur-3: 240ms;   /* emphasis: reveals, success */
+  --lucid-dur-4: 380ms;   /* panel entrance, the one big move */
+  --lucid-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --lucid-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lucid-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --lucid-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+
+  /* ── END LUCID TOKENS ─────────────────────────────────────────────────── */
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* ── LUCID TOKENS ──────────────────────────────────────── (dark) ── */
+    --lucid-bg: #14171f;
+    --lucid-surface: #1b1f29;
+    --lucid-fg: #edf0f7;
+    --lucid-muted: #9aa3b8;
+    --lucid-border: #2a303d;
+    --lucid-border-strong: #3a4252;
+
+    --lucid-accent: #8aaaff;
+    --lucid-accent-fg: #0b0e15;
+    --lucid-accent-soft: rgba(138, 170, 255, 0.16);
+    --lucid-accent-ring: rgba(138, 170, 255, 0.45);
+
+    --lucid-error: #ffb59b;
+    --lucid-error-soft: rgba(255, 181, 155, 0.1);
+
+    --lucid-ok: #6fdcae;
+    --lucid-ok-soft: rgba(111, 220, 174, 0.12);
+
+    --lucid-aurora-1: #8d7cff;
+    --lucid-aurora-2: #3fd0ff;
+    --lucid-aurora-3: #4df0bc;
+
+    --lucid-read: #ffce55;
+    --lucid-read-deep: #ffe1a0;
+    --lucid-read-wash: rgba(255, 206, 85, 0.22);
+
+    --lucid-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.5),
+      0 20px 48px -12px rgba(0, 0, 0, 0.65);
+    --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    /* ── END LUCID TOKENS ───────────────────────────────────────────────── */
+  }
+}
+
+/* Windows High Contrast and other forced-colors modes. Last in the file so it
+   beats both palettes above. Hard-coded colours are ignored there anyway, so
+   every token hands its value back to the OS rather than fighting it. */
+@media (forced-colors: active) {
+  :root {
+    --lucid-bg: Canvas;
+    --lucid-surface: Canvas;
+    --lucid-fg: CanvasText;
+    --lucid-muted: CanvasText;
+    --lucid-border: CanvasText;
+    --lucid-border-strong: CanvasText;
+    --lucid-accent: Highlight;
+    --lucid-accent-fg: HighlightText;
+    --lucid-accent-soft: Canvas;
+    --lucid-accent-ring: Highlight;
+    --lucid-error: CanvasText;
+    --lucid-error-soft: Canvas;
+    --lucid-ok: CanvasText;
+    --lucid-ok-soft: Canvas;
+    --lucid-shadow: none;
+    --lucid-hairline: none;
+  }
+}

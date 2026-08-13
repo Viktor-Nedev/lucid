@@ -1,0 +1,710 @@
+/*
+ * Lucid - panel.css
+ * ===========================================================================
+ * Design-owned. Adopted into the panel's shadow root by shared/theme.ts AFTER
+ * the component's built-in styles, so plain selectors win on equal specificity.
+ *
+ * SELECTOR CONTRACT - these are the hooks panel.ts already gives us, and this
+ * file is built entirely on them. No markup changes required:
+ *
+ *   :host([hidden])            panel dismissed
+ *   :host([aria-busy="true"])  a model call is in flight  <- the thinking state
+ *   .panel .header .title .close .content .status .spinner
+ *   .body                      streamed text; :empty while waiting
+ *   .error                     [hidden] until setError()
+ *   .actions button.action(.primary) .hint
+ *
+ * OPTIONAL HOOKS - all degrade gracefully if never used. See DESIGN.md:
+ *   .error[data-variant="setup"]   calm "needs an API key" tone, not an error
+ *   .lucid-eq                      speaking indicator (markup in DESIGN.md)
+ *   .lucid-chunk                   wrap a streamed chunk to stagger its reveal
+ *
+ * MOTION BUDGET: entrance 380ms, exit 120ms, everything else 120-240ms, all
+ * eased. Exactly one thing moves at a time. Every animation here is disabled
+ * under prefers-reduced-motion at the bottom of the file.
+ *
+ * Nothing here traps focus or interferes with Escape - the panel is a
+ * non-modal dialog by design and the styling keeps it that way.
+ */
+
+:host {
+  /* -- LUCID TOKENS ------------------------------------------- (light) -- */
+  --lucid-bg: #ffffff;
+  --lucid-surface: #f5f7fb;
+  --lucid-fg: #0f1218;
+  --lucid-muted: #59617a;
+  --lucid-border: #e3e6ef;
+  --lucid-border-strong: #c9d0e0;
+  --lucid-accent: #2a46d8;
+  --lucid-accent-fg: #ffffff;
+  --lucid-accent-soft: rgba(42, 70, 216, 0.1);
+  --lucid-accent-ring: rgba(42, 70, 216, 0.35);
+  --lucid-error: #9a3b22;
+  --lucid-error-soft: rgba(154, 59, 34, 0.08);
+  --lucid-ok: #10684a;
+  --lucid-ok-soft: rgba(16, 104, 74, 0.1);
+  --lucid-aurora-1: #6e5cff;
+  --lucid-aurora-2: #17b8e8;
+  --lucid-aurora-3: #2fd9a6;
+  --lucid-read: #ffc53d;
+  --lucid-read-deep: #8a5300;
+  --lucid-read-wash: rgba(255, 197, 61, 0.2);
+  --lucid-radius: 16px;
+  --lucid-radius-sm: 10px;
+  --lucid-radius-xs: 7px;
+  --lucid-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lucid-shadow:
+    0 1px 2px rgba(16, 20, 32, 0.06),
+    0 8px 24px -6px rgba(16, 20, 32, 0.14),
+    0 24px 56px -20px rgba(16, 20, 32, 0.22);
+  --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --lucid-dur-1: 120ms;
+  --lucid-dur-2: 180ms;
+  --lucid-dur-3: 240ms;
+  --lucid-dur-4: 380ms;
+  --lucid-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --lucid-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lucid-ease-in: cubic-bezier(0.55, 0, 1, 0.45);
+  --lucid-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  /* -- END LUCID TOKENS -------------------------------------------------- */
+
+  inset-block-end: 24px;
+  inset-inline-end: 24px;
+
+  /* Entry runs as an animation on .panel (restarts reliably when the host
+     flips out of display:none). Declaring no transition here keeps the two
+     from doubling up. Exit is the transition on :host([hidden]) below. */
+  transition: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    /* -- LUCID TOKENS ---------------------------------------- (dark) -- */
+    --lucid-bg: #14171f;
+    --lucid-surface: #1b1f29;
+    --lucid-fg: #edf0f7;
+    --lucid-muted: #9aa3b8;
+    --lucid-border: #2a303d;
+    --lucid-border-strong: #3a4252;
+    --lucid-accent: #8aaaff;
+    --lucid-accent-fg: #0b0e15;
+    --lucid-accent-soft: rgba(138, 170, 255, 0.16);
+    --lucid-accent-ring: rgba(138, 170, 255, 0.45);
+    --lucid-error: #ffb59b;
+    --lucid-error-soft: rgba(255, 181, 155, 0.1);
+    --lucid-ok: #6fdcae;
+    --lucid-ok-soft: rgba(111, 220, 174, 0.12);
+    --lucid-aurora-1: #8d7cff;
+    --lucid-aurora-2: #3fd0ff;
+    --lucid-aurora-3: #4df0bc;
+    --lucid-read: #ffce55;
+    --lucid-read-deep: #ffe1a0;
+    --lucid-read-wash: rgba(255, 206, 85, 0.22);
+    --lucid-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.5),
+      0 20px 48px -12px rgba(0, 0, 0, 0.65);
+    --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    /* -- END LUCID TOKENS ------------------------------------------------ */
+  }
+}
+
+/* -------------------------------------------------------------------------
+   EXIT - quick and clean. The transition lives on the destination state, so
+   only dismissal uses it; appearing skips straight to the .panel animation.
+   allow-discrete lets display: none wait for the fade instead of cutting it.
+   ------------------------------------------------------------------------- */
+:host([hidden]) {
+  display: none;
+  opacity: 0;
+  transform: translateY(4px) scale(0.99);
+  transition:
+    opacity var(--lucid-dur-1) var(--lucid-ease-in),
+    transform var(--lucid-dur-1) var(--lucid-ease-in),
+    display var(--lucid-dur-1) allow-discrete;
+}
+
+/* -------------------------------------------------------------------------
+   THE PANEL
+   ------------------------------------------------------------------------- */
+.panel {
+  position: relative;
+  width: min(408px, calc(100vw - 32px));
+  max-height: min(72vh, 660px);
+  background: var(--lucid-bg);
+  border: 1px solid var(--lucid-border);
+  border-radius: var(--lucid-radius);
+  box-shadow: var(--lucid-shadow), var(--lucid-hairline);
+  font-family: var(--lucid-font);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+
+  /* ENTRANCE: opacity and blur clear quickly while the rise settles with a
+     touch of overshoot. Two animations so each property gets its own easing. */
+  animation:
+    lucid-panel-fade var(--lucid-dur-3) var(--lucid-ease-out) both,
+    lucid-panel-rise var(--lucid-dur-4) var(--lucid-ease-spring) both;
+}
+
+@keyframes lucid-panel-fade {
+  from { opacity: 0; filter: blur(7px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+@keyframes lucid-panel-rise {
+  from { transform: translateY(14px) scale(0.965); }
+  to   { transform: translateY(0) scale(1); }
+}
+
+/* Content sits above the interior aurora wash (.panel::after). */
+.header,
+.content,
+.actions {
+  position: relative;
+  z-index: 1;
+}
+
+/* -- Header ------------------------------------------------------------- */
+.header {
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px 18px;
+  border-bottom: 1px solid var(--lucid-border);
+}
+
+.title {
+  font-size: 0.98em;
+  font-weight: 600;
+  letter-spacing: -0.011em;
+}
+
+/* The lens: Lucid's mark, and a live status light. Grey at rest, aurora while
+   the model is working - so the mark itself tells you what is happening. */
+.title::before {
+  content: "";
+  float: inline-start;
+  width: 9px;
+  height: 9px;
+  margin-block-start: 0.44em;
+  margin-inline-end: 9px;
+  border-radius: 50%;
+  background: var(--lucid-border-strong);
+  box-shadow: 0 0 0 3px var(--lucid-surface);
+  transition:
+    background var(--lucid-dur-3) var(--lucid-ease),
+    box-shadow var(--lucid-dur-3) var(--lucid-ease);
+}
+
+.close {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--lucid-radius-xs);
+  font-size: 16px;
+  transition:
+    color var(--lucid-dur-1) var(--lucid-ease),
+    background var(--lucid-dur-1) var(--lucid-ease),
+    transform var(--lucid-dur-1) var(--lucid-ease-out);
+}
+.close:hover {
+  color: var(--lucid-fg);
+  background: var(--lucid-surface);
+  border-color: transparent;
+}
+.close:active { transform: scale(0.92); }
+
+/* -- Content and scrollbar ---------------------------------------------- */
+.content {
+  padding: 14px 18px 6px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--lucid-border-strong) transparent;
+}
+.content::-webkit-scrollbar { width: 10px; }
+.content::-webkit-scrollbar-thumb {
+  background-clip: content-box;
+  background-color: var(--lucid-border-strong);
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+
+/* -- Status row --------------------------------------------------------- */
+.status {
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 0.86em;
+  letter-spacing: 0.005em;
+}
+
+/* -------------------------------------------------------------------------
+   THE THINKING STATE
+   This is on screen for the whole model round trip, so it carries the most
+   design weight in the extension: an aperture that opens and closes, a
+   spectrum ray along the top edge, an aurora blooming behind the title, and
+   the answer's own shape sketched in as skeleton lines. Everything drifts and
+   breathes on long, eased, alternating cycles - nothing blinks or strobes.
+   ------------------------------------------------------------------------- */
+
+/* The aperture, replacing the default border spinner. */
+.spinner {
+  position: relative;
+  width: 15px;
+  height: 15px;
+  border: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0turn,
+    transparent 0deg,
+    var(--lucid-aurora-1) 90deg,
+    var(--lucid-aurora-2) 190deg,
+    var(--lucid-aurora-3) 280deg,
+    transparent 360deg
+  );
+  /* Masked into a ring so the centre stays clear for the pupil. */
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+          mask: radial-gradient(farthest-side, transparent calc(100% - 2.5px), #000 calc(100% - 2.5px));
+  /* A continuous rotation is the one place linear is right - easing a loop
+     makes it lurch. The eased breathing below supplies the life. */
+  animation: lucid-aperture 1.9s linear infinite;
+}
+.spinner::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--lucid-aurora-2);
+  animation: lucid-pupil 2.4s var(--lucid-ease) infinite alternate;
+}
+@keyframes lucid-aperture { to { transform: rotate(1turn); } }
+@keyframes lucid-pupil {
+  from { transform: scale(0.65); opacity: 0.55; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+/* The mark in the header goes live. */
+:host([aria-busy="true"]) .title::before {
+  background: var(--lucid-aurora-2);
+  animation: lucid-mark-breathe 2.4s var(--lucid-ease) infinite alternate;
+}
+@keyframes lucid-mark-breathe {
+  from { box-shadow: 0 0 0 2px var(--lucid-accent-soft); }
+  to   { box-shadow: 0 0 0 5px transparent; }
+}
+
+/* Spectrum ray along the top edge. */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset-block-start: -1px;
+  inset-inline: 14px;
+  height: 2px;
+  border-radius: 2px;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--lucid-aurora-1) 22%,
+    var(--lucid-aurora-2) 50%,
+    var(--lucid-aurora-3) 78%,
+    transparent 100%
+  );
+  background-size: 260% 100%;
+  transition: opacity var(--lucid-dur-3) var(--lucid-ease);
+}
+:host([aria-busy="true"]) .panel::before {
+  opacity: 1;
+  animation: lucid-ray 3.2s var(--lucid-ease) infinite alternate;
+}
+@keyframes lucid-ray {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+/* Aurora blooming inside the top of the panel. Inset by a pixel and rounded
+   to match, so it never spills past the border radius. */
+.panel::after {
+  content: "";
+  position: absolute;
+  inset: 1px 1px auto 1px;
+  height: 148px;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: calc(var(--lucid-radius) - 1px) calc(var(--lucid-radius) - 1px) 0 0;
+  background:
+    radial-gradient(58% 78% at 22% 0%, var(--lucid-aurora-1) 0%, transparent 68%),
+    radial-gradient(52% 72% at 68% 6%, var(--lucid-aurora-2) 0%, transparent 66%),
+    radial-gradient(46% 66% at 96% 0%, var(--lucid-aurora-3) 0%, transparent 62%);
+  filter: blur(26px);
+  transition: opacity var(--lucid-dur-4) var(--lucid-ease);
+}
+:host([aria-busy="true"]) .panel::after {
+  opacity: 0.34;
+  animation: lucid-aurora 9s var(--lucid-ease) infinite alternate;
+}
+@keyframes lucid-aurora {
+  from { transform: translate3d(-5%, -2%, 0) scale(1); }
+  to   { transform: translate3d(6%, 3%, 0) scale(1.14); }
+}
+
+/* Skeleton: three lines of unequal length, cut out of a drifting aurora, so
+   the wait shows the shape of the answer that is coming. Disappears by itself
+   the moment the first streamed character lands (:empty stops matching). */
+:host([aria-busy="true"]) .body:empty {
+  display: block;
+  height: 62px;
+}
+:host([aria-busy="true"]) .body:empty::before {
+  content: "";
+  display: block;
+  height: 100%;
+  opacity: 0.42;
+  background: linear-gradient(
+    100deg,
+    var(--lucid-aurora-1),
+    var(--lucid-aurora-2),
+    var(--lucid-aurora-3),
+    var(--lucid-aurora-1)
+  );
+  background-size: 260% 100%;
+  -webkit-mask:
+    linear-gradient(#000, #000) 0 2px / 100% 11px no-repeat,
+    linear-gradient(#000, #000) 0 26px / 88% 11px no-repeat,
+    linear-gradient(#000, #000) 0 50px / 58% 11px no-repeat;
+          mask:
+    linear-gradient(#000, #000) 0 2px / 100% 11px no-repeat,
+    linear-gradient(#000, #000) 0 26px / 88% 11px no-repeat,
+    linear-gradient(#000, #000) 0 50px / 58% 11px no-repeat;
+  animation: lucid-drift 3.4s var(--lucid-ease) infinite alternate;
+}
+@keyframes lucid-drift {
+  from { background-position: 0% 50%; }
+  to   { background-position: 100% 50%; }
+}
+
+/* -------------------------------------------------------------------------
+   TEXT ARRIVING
+   ------------------------------------------------------------------------- */
+.body {
+  font-size: 0.98em;
+  letter-spacing: -0.002em;
+  text-wrap: pretty;
+}
+
+/* A caret trailing the stream while text is still landing. */
+:host([aria-busy="true"]) .body:not(:empty)::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-inline-start: 2px;
+  vertical-align: text-bottom;
+  border-radius: 1px;
+  background: var(--lucid-accent);
+  animation: lucid-caret 1.1s var(--lucid-ease) infinite;
+}
+@keyframes lucid-caret {
+  0%, 45%  { opacity: 1; }
+  70%      { opacity: 0.25; }
+  100%     { opacity: 1; }
+}
+
+/* When the stream ends, the finished text settles rather than snapping. */
+:host(:not([aria-busy="true"])) .body:not(:empty) {
+  animation: lucid-settle var(--lucid-dur-3) var(--lucid-ease-out) both;
+}
+@keyframes lucid-settle {
+  from { opacity: 0.55; transform: translateY(3px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* Optional: wrap each streamed chunk in <span class="lucid-chunk"> and the
+   text reveals chunk by chunk as it lands instead of all at once. */
+.lucid-chunk {
+  animation: lucid-chunk-in var(--lucid-dur-2) var(--lucid-ease-out) both;
+}
+@keyframes lucid-chunk-in {
+  from { opacity: 0; filter: blur(3px); }
+  to   { opacity: 1; filter: blur(0); }
+}
+
+/* -------------------------------------------------------------------------
+   TROUBLE - readable and calm. A clay left rail, a tinted surface, no siren.
+   The wording carries the meaning; colour only supports it.
+   ------------------------------------------------------------------------- */
+.error {
+  padding: 11px 13px 11px 14px;
+  color: var(--lucid-fg);
+  background: var(--lucid-error-soft);
+  border: 0;
+  border-inline-start: 3px solid var(--lucid-error);
+  border-radius: var(--lucid-radius-xs);
+  font-size: 0.92em;
+  animation: lucid-settle var(--lucid-dur-3) var(--lucid-ease-out) both;
+}
+.error::before {
+  content: "";
+  float: inline-start;
+  width: 15px;
+  height: 15px;
+  margin-block-start: 0.2em;
+  margin-inline-end: 9px;
+  border-radius: 50%;
+  background: var(--lucid-error);
+  /* An exclamation punched out of the dot - no icon font, no image. */
+  -webkit-mask:
+    linear-gradient(#000, #000) 50% 3px / 2px 6px no-repeat,
+    linear-gradient(#000, #000) 50% 11px / 2px 2px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000, #000) 50% 3px / 2px 6px no-repeat,
+    linear-gradient(#000, #000) 50% 11px / 2px 2px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+          mask-composite: exclude;
+}
+
+/* Not every problem is an error. Set data-variant="setup" when the only thing
+   missing is an API key: same layout, accent tone, nothing alarming. */
+.error[data-variant="setup"] {
+  background: var(--lucid-accent-soft);
+  border-inline-start-color: var(--lucid-accent);
+}
+.error[data-variant="setup"]::before {
+  background: var(--lucid-accent);
+  -webkit-mask:
+    linear-gradient(#000, #000) 50% 4px / 2px 2px no-repeat,
+    linear-gradient(#000, #000) 50% 8px / 2px 6px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000, #000) 50% 4px / 2px 2px no-repeat,
+    linear-gradient(#000, #000) 50% 8px / 2px 6px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+          mask-composite: exclude;
+}
+
+/* -------------------------------------------------------------------------
+   SPEAKING INDICATOR - drop into the status row or an action button:
+     <span class="lucid-eq" data-state="speaking" aria-hidden="true">
+       <i></i><i></i><i></i><i></i><i></i>
+     </span>
+   data-state="paused" freezes the bars mid-stride and drops them to a level
+   row, so paused is legible at a glance and not just "stopped moving".
+   ------------------------------------------------------------------------- */
+.lucid-eq {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 14px;
+  vertical-align: middle;
+}
+.lucid-eq i {
+  display: block;
+  width: 2.5px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--lucid-accent);
+  transform-origin: center;
+  /* Durations that never divide into each other keep the bars from
+     re-syncing, which is what makes it read as reacting to audio. */
+  animation: lucid-eq-bar 0.53s var(--lucid-ease) infinite alternate;
+}
+.lucid-eq i:nth-child(2) { animation-duration: 0.79s; animation-delay: -0.2s; }
+.lucid-eq i:nth-child(3) { animation-duration: 0.41s; animation-delay: -0.1s; }
+.lucid-eq i:nth-child(4) { animation-duration: 0.67s; animation-delay: -0.3s; }
+.lucid-eq i:nth-child(5) { animation-duration: 0.89s; animation-delay: -0.15s; }
+@keyframes lucid-eq-bar {
+  from { transform: scaleY(0.22); opacity: 0.6; }
+  to   { transform: scaleY(1);    opacity: 1; }
+}
+.lucid-eq[data-state="paused"] i {
+  animation-play-state: paused;
+  transform: scaleY(0.3);
+  opacity: 0.5;
+  transition:
+    transform var(--lucid-dur-2) var(--lucid-ease-out),
+    opacity var(--lucid-dur-2) var(--lucid-ease-out);
+}
+
+/* -------------------------------------------------------------------------
+   TABLE - chart data. Quiet rules, tabular figures, sticky header.
+   ------------------------------------------------------------------------- */
+table { font-size: 0.9em; font-variant-numeric: tabular-nums; }
+caption {
+  padding-bottom: 8px;
+  font-weight: 600;
+  color: var(--lucid-fg);
+  font-size: 0.95em;
+}
+th, td {
+  padding: 7px 10px;
+  border: 0;
+  border-bottom: 1px solid var(--lucid-border);
+}
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--lucid-bg);
+  border-bottom: 1px solid var(--lucid-border-strong);
+  color: var(--lucid-muted);
+  font-size: 0.92em;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+tbody th { font-weight: 600; background: none; }
+tbody tr:last-child th,
+tbody tr:last-child td { border-bottom: 0; }
+tbody tr { transition: background var(--lucid-dur-1) var(--lucid-ease); }
+tbody tr:hover { background: var(--lucid-surface); }
+
+/* -------------------------------------------------------------------------
+   ACTIONS
+   ------------------------------------------------------------------------- */
+.actions {
+  gap: 8px;
+  padding: 12px 18px 14px;
+  border-top: 1px solid var(--lucid-border);
+}
+
+button.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 13px;
+  font-size: 0.9em;
+  font-weight: 500;
+  background: var(--lucid-bg);
+  border-color: var(--lucid-border-strong);
+  border-radius: var(--lucid-radius-sm);
+  transition:
+    background var(--lucid-dur-1) var(--lucid-ease),
+    border-color var(--lucid-dur-1) var(--lucid-ease),
+    box-shadow var(--lucid-dur-1) var(--lucid-ease),
+    transform var(--lucid-dur-1) var(--lucid-ease-out);
+}
+button.action:hover {
+  background: var(--lucid-surface);
+  border-color: var(--lucid-border-strong);
+  transform: translateY(-1px);
+}
+button.action:active { transform: translateY(0) scale(0.985); }
+
+button.action.primary {
+  background: var(--lucid-accent);
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(16, 20, 32, 0.16), var(--lucid-hairline);
+}
+button.action.primary:hover {
+  background: var(--lucid-accent);
+  box-shadow: 0 3px 10px -2px var(--lucid-accent-ring), var(--lucid-hairline);
+}
+
+/* Shortcut hints read as keycaps. */
+.hint {
+  margin-inline-start: 1px;
+  padding: 2px 5px;
+  font-size: 0.8em;
+  font-weight: 500;
+  color: var(--lucid-muted);
+  background: var(--lucid-surface);
+  border: 1px solid var(--lucid-border);
+  border-radius: 5px;
+  letter-spacing: 0.01em;
+}
+button.action.primary .hint {
+  color: var(--lucid-accent-fg);
+  background: rgba(255, 255, 255, 0.16);
+  border-color: transparent;
+  opacity: 0.95;
+}
+
+/* One focus ring everywhere, and it is never removed. */
+.close:focus-visible,
+.title:focus-visible,
+button.action:focus-visible {
+  outline: 2px solid var(--lucid-accent);
+  outline-offset: 2px;
+  border-radius: var(--lucid-radius-xs);
+}
+
+/* -------------------------------------------------------------------------
+   REDUCED MOTION - every animation above is opt-out. What remains is the
+   information: the aperture still marks "working", the aurora still tints the
+   panel, the caret still shows the stream is live. Nothing travels.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .panel,
+  .panel::before,
+  .panel::after,
+  .spinner,
+  .spinner::after,
+  .body,
+  .body:empty::before,
+  .error,
+  .lucid-chunk,
+  .lucid-eq i,
+  :host([aria-busy="true"]) .title::before,
+  :host([aria-busy="true"]) .body:not(:empty)::after,
+  :host(:not([aria-busy="true"])) .body:not(:empty) {
+    animation: none !important;
+  }
+  :host([hidden]) { transition: none; }
+
+  .panel { opacity: 1; transform: none; filter: none; }
+  .spinner {
+    background: conic-gradient(
+      from 0turn,
+      var(--lucid-aurora-1),
+      var(--lucid-aurora-2),
+      var(--lucid-aurora-3),
+      var(--lucid-aurora-1)
+    );
+  }
+  .spinner::after { opacity: 1; transform: scale(0.85); }
+  :host([aria-busy="true"]) .body:not(:empty)::after { opacity: 1; }
+  .lucid-eq i { transform: scaleY(0.55); }
+  .lucid-eq[data-state="speaking"] i:nth-child(2) { transform: scaleY(1); }
+  .lucid-eq[data-state="speaking"] i:nth-child(4) { transform: scaleY(0.8); }
+
+  .close:active,
+  button.action:hover,
+  button.action:active { transform: none; }
+}
+
+/* -------------------------------------------------------------------------
+   FORCED COLORS - last, because it has to beat everything above. Hand every
+   colour back to the OS and drop the decoration that cannot survive there.
+   ------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  :host {
+    --lucid-bg: Canvas;
+    --lucid-surface: Canvas;
+    --lucid-fg: CanvasText;
+    --lucid-muted: CanvasText;
+    --lucid-border: CanvasText;
+    --lucid-border-strong: CanvasText;
+    --lucid-accent: Highlight;
+    --lucid-accent-fg: HighlightText;
+    --lucid-accent-soft: Canvas;
+    --lucid-error: CanvasText;
+    --lucid-error-soft: Canvas;
+    --lucid-shadow: none;
+    --lucid-hairline: none;
+  }
+  .panel { border-width: 2px; box-shadow: none; }
+  .panel::before,
+  .panel::after { display: none; }
+  .title::before { forced-color-adjust: none; background: Highlight; box-shadow: none; }
+  .spinner {
+    forced-color-adjust: none;
+    background: Highlight;
+    -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+            mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  }
+  .spinner::after { background: Highlight; }
+  :host([aria-busy="true"]) .body:empty::before { background: GrayText; }
+  .error { border: 1px solid CanvasText; border-inline-start-width: 3px; }
+  .error::before { background: CanvasText; }
+  .hint { border-color: CanvasText; }
+  .lucid-eq i { forced-color-adjust: none; background: Highlight; }
+  button.action.primary { border: 1px solid CanvasText; }
+}

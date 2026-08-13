@@ -1,0 +1,473 @@
+/*
+ * Lucid - options.css
+ * ===========================================================================
+ * The settings page. Unlike the panel and the overlay this is an ordinary
+ * document, so it needs one line added to src/options/options.html - the last
+ * thing in <head>, so it lands after the page's own <style>:
+ *
+ *     <link rel="stylesheet" href="styles/options.css" />
+ *
+ * That file belongs to another worker; this stylesheet is written to be
+ * additive so the page keeps working exactly as it does today if the line is
+ * never added. Nothing here changes markup, ids, labels or tab order.
+ *
+ * THE TWO CONTROLS THAT GET TOUCHED ON CAMERA
+ *
+ * The checkboxes become switches and the speech-rate slider gets a real
+ * track and thumb, because those are the two things a demo actually puts a
+ * cursor on. Both keep their native element, their native keyboard behaviour
+ * and their native focus ring - only the paint changes.
+ *
+ * OPTIONAL, both degrade to something deliberate if never wired up:
+ *
+ *   #tts-rate, #font-scale   set --pct to fill the track behind the thumb:
+ *                              el.style.setProperty('--pct', pctOf(el) + '%')
+ *                            where pctOf = (v - min) / (max - min) * 100.
+ *                            Without it the track simply reads as unfilled.
+ *
+ *   #status                  data-tone="ok" draws a checkmark and tints green;
+ *                            data-tone="error" tints clay. Without it the
+ *                            status line styles as neutral, as it does now.
+ */
+
+:root {
+  /* -- LUCID TOKENS ------------------------------------------- (light) -- */
+  --lucid-bg: #ffffff;
+  --lucid-surface: #f5f7fb;
+  --lucid-fg: #0f1218;
+  --lucid-muted: #59617a;
+  --lucid-border: #e3e6ef;
+  --lucid-border-strong: #c9d0e0;
+  --lucid-accent: #2a46d8;
+  --lucid-accent-fg: #ffffff;
+  --lucid-accent-soft: rgba(42, 70, 216, 0.1);
+  --lucid-accent-ring: rgba(42, 70, 216, 0.35);
+  --lucid-error: #9a3b22;
+  --lucid-error-soft: rgba(154, 59, 34, 0.08);
+  --lucid-ok: #10684a;
+  --lucid-ok-soft: rgba(16, 104, 74, 0.1);
+  --lucid-aurora-1: #6e5cff;
+  --lucid-aurora-2: #17b8e8;
+  --lucid-aurora-3: #2fd9a6;
+  --lucid-radius: 16px;
+  --lucid-radius-sm: 10px;
+  --lucid-radius-xs: 7px;
+  --lucid-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lucid-shadow:
+    0 1px 2px rgba(16, 20, 32, 0.06),
+    0 8px 24px -6px rgba(16, 20, 32, 0.14);
+  --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --lucid-dur-1: 120ms;
+  --lucid-dur-2: 180ms;
+  --lucid-dur-3: 240ms;
+  --lucid-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --lucid-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lucid-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  /* -- END LUCID TOKENS -------------------------------------------------- */
+
+  /* Kept in sync with the ids above so the page's own rules pick them up. */
+  --bg: var(--lucid-bg);
+  --fg: var(--lucid-fg);
+  --muted: var(--lucid-muted);
+  --border: var(--lucid-border);
+  --accent: var(--lucid-accent);
+  --accent-fg: var(--lucid-accent-fg);
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* -- LUCID TOKENS ---------------------------------------- (dark) -- */
+    --lucid-bg: #14171f;
+    --lucid-surface: #1b1f29;
+    --lucid-fg: #edf0f7;
+    --lucid-muted: #9aa3b8;
+    --lucid-border: #2a303d;
+    --lucid-border-strong: #3a4252;
+    --lucid-accent: #8aaaff;
+    --lucid-accent-fg: #0b0e15;
+    --lucid-accent-soft: rgba(138, 170, 255, 0.16);
+    --lucid-accent-ring: rgba(138, 170, 255, 0.45);
+    --lucid-error: #ffb59b;
+    --lucid-error-soft: rgba(255, 181, 155, 0.1);
+    --lucid-ok: #6fdcae;
+    --lucid-ok-soft: rgba(111, 220, 174, 0.12);
+    --lucid-aurora-1: #8d7cff;
+    --lucid-aurora-2: #3fd0ff;
+    --lucid-aurora-3: #4df0bc;
+    --lucid-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), 0 20px 48px -12px rgba(0, 0, 0, 0.65);
+    --lucid-hairline: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    /* -- END LUCID TOKENS ------------------------------------------------ */
+  }
+}
+
+/* -------------------------------------------------------------------------
+   PAGE
+   ------------------------------------------------------------------------- */
+body {
+  max-width: 760px;
+  padding: 56px 24px 96px;
+  background: var(--lucid-bg);
+  color: var(--lucid-fg);
+  font-family: var(--lucid-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: 1.75rem;
+  font-weight: 640;
+  letter-spacing: -0.022em;
+}
+
+/* The mark: a lens, drawn in CSS. Same one the panel and the badge wear. */
+h1::before {
+  content: "";
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 50%, var(--lucid-accent) 0 3.5px, transparent 3.5px),
+    conic-gradient(from 200deg, var(--lucid-aurora-1), var(--lucid-aurora-2), var(--lucid-aurora-3), var(--lucid-aurora-1));
+  -webkit-mask:
+    radial-gradient(circle at 50% 50%, #000 0 4px, transparent 4px 7px, #000 7px 11px, transparent 11px);
+          mask:
+    radial-gradient(circle at 50% 50%, #000 0 4px, transparent 4px 7px, #000 7px 11px, transparent 11px);
+}
+
+.lede {
+  margin-bottom: 40px;
+  font-size: 1.02rem;
+  color: var(--lucid-muted);
+  text-wrap: pretty;
+}
+
+/* -------------------------------------------------------------------------
+   SECTIONS - cards, not boxes. The legend rides on the top edge.
+   ------------------------------------------------------------------------- */
+fieldset {
+  margin-bottom: 20px;
+  padding: 22px 24px 24px;
+  background: var(--lucid-bg);
+  border: 1px solid var(--lucid-border);
+  border-radius: var(--lucid-radius);
+  box-shadow: var(--lucid-shadow), var(--lucid-hairline);
+}
+legend {
+  padding: 0 9px;
+  margin-inline-start: -3px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lucid-muted);
+}
+
+.field { margin-top: 22px; }
+label { font-weight: 500; margin-bottom: 6px; letter-spacing: -0.006em; }
+.help { margin-top: 6px; font-size: 0.85rem; color: var(--lucid-muted); text-wrap: pretty; }
+.help a { color: var(--lucid-accent); text-underline-offset: 2px; }
+
+/* -------------------------------------------------------------------------
+   TEXT INPUTS AND SELECTS
+   ------------------------------------------------------------------------- */
+input[type="text"],
+input[type="password"],
+select {
+  padding: 10px 12px;
+  background: var(--lucid-surface);
+  border: 1px solid var(--lucid-border);
+  border-radius: var(--lucid-radius-sm);
+  transition:
+    background var(--lucid-dur-2) var(--lucid-ease),
+    border-color var(--lucid-dur-2) var(--lucid-ease),
+    box-shadow var(--lucid-dur-2) var(--lucid-ease);
+}
+input[type="text"]:hover,
+input[type="password"]:hover,
+select:hover { border-color: var(--lucid-border-strong); }
+
+input[type="text"]:focus,
+input[type="password"]:focus,
+select:focus {
+  background: var(--lucid-bg);
+  border-color: var(--lucid-accent);
+  box-shadow: 0 0 0 3px var(--lucid-accent-soft);
+  outline: none;
+}
+/* Keyboard users still get the ring; the glow above is the mouse affordance. */
+input:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--lucid-accent);
+  outline-offset: 2px;
+}
+
+select {
+  appearance: none;
+  padding-inline-end: 38px;
+  /* Chevron drawn from two gradients, so no image and no icon font. */
+  background-image:
+    linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 19px) calc(50% + 1px),
+    calc(100% - 14px) calc(50% + 1px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* -------------------------------------------------------------------------
+   THE SWITCH
+   Every checkbox becomes one. The input keeps doing all the work - this is
+   paint only, so Space still toggles it and the label still targets it.
+   ------------------------------------------------------------------------- */
+.row { gap: 13px; align-items: center; }
+.row label { cursor: pointer; }
+
+.row input[type="checkbox"] {
+  appearance: none;
+  position: relative;
+  width: 40px;
+  height: 24px;
+  flex: none;
+  background: var(--lucid-border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--lucid-dur-2) var(--lucid-ease);
+}
+.row input[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(16, 20, 32, 0.32);
+  /* The knob overshoots a hair on its way across. That tiny bounce is the
+     whole reason a switch feels better than a checkbox. */
+  transition: transform var(--lucid-dur-3) var(--lucid-ease-spring);
+}
+.row input[type="checkbox"]:hover { background: var(--lucid-border-strong); }
+.row input[type="checkbox"]:checked { background: var(--lucid-accent); }
+.row input[type="checkbox"]:checked::after { transform: translateX(16px); }
+.row input[type="checkbox"]:active::after { width: 21px; }
+
+/* -------------------------------------------------------------------------
+   THE SLIDER
+   Speech rate and panel text size. Set --pct to fill the track; without it
+   the track reads as an unfilled rail, which is a deliberate look rather
+   than a broken one.
+   ------------------------------------------------------------------------- */
+input[type="range"] {
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background:
+    linear-gradient(to right, var(--lucid-accent) 0 var(--pct, 0%), transparent var(--pct, 0%)),
+    var(--lucid-border);
+  transition: background var(--lucid-dur-1) var(--lucid-ease);
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -7px;
+  background: var(--lucid-bg);
+  border: 2px solid var(--lucid-accent);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(16, 20, 32, 0.26);
+  transition:
+    transform var(--lucid-dur-1) var(--lucid-ease-out),
+    box-shadow var(--lucid-dur-1) var(--lucid-ease);
+}
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.12);
+  box-shadow: 0 0 0 6px var(--lucid-accent-soft);
+}
+input[type="range"]:active::-webkit-slider-thumb {
+  transform: scale(1.04);
+  box-shadow: 0 0 0 9px var(--lucid-accent-soft);
+}
+
+/* The live value beside the label, so the number reads as part of the control. */
+output {
+  display: inline-block;
+  min-width: 2.4em;
+  padding: 1px 7px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--lucid-accent);
+  background: var(--lucid-accent-soft);
+  border-radius: 6px;
+}
+
+/* -------------------------------------------------------------------------
+   BUTTONS
+   ------------------------------------------------------------------------- */
+.actions { gap: 10px; margin-top: 24px; }
+button {
+  padding: 10px 17px;
+  font-weight: 500;
+  background: var(--lucid-bg);
+  border: 1px solid var(--lucid-border-strong);
+  border-radius: var(--lucid-radius-sm);
+  transition:
+    background var(--lucid-dur-1) var(--lucid-ease),
+    border-color var(--lucid-dur-1) var(--lucid-ease),
+    box-shadow var(--lucid-dur-1) var(--lucid-ease),
+    transform var(--lucid-dur-1) var(--lucid-ease-out);
+}
+button:hover { background: var(--lucid-surface); transform: translateY(-1px); }
+button:active { transform: translateY(0) scale(0.985); }
+button.primary {
+  color: var(--lucid-accent-fg);
+  background: var(--lucid-accent);
+  border-color: transparent;
+  box-shadow: 0 1px 2px rgba(16, 20, 32, 0.16), var(--lucid-hairline);
+}
+button.primary:hover {
+  background: var(--lucid-accent);
+  box-shadow: 0 4px 14px -3px var(--lucid-accent-ring), var(--lucid-hairline);
+}
+
+/* -------------------------------------------------------------------------
+   SAVE FEEDBACK
+   The one moment in this page that deserves a flourish: the key is in, it
+   worked, and the user can stop worrying about it.
+   ------------------------------------------------------------------------- */
+#status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 24px;
+  padding: 13px 16px;
+  background: var(--lucid-surface);
+  border: 1px solid var(--lucid-border);
+  border-radius: var(--lucid-radius-sm);
+  font-size: 0.94rem;
+  animation: lucid-status-in var(--lucid-dur-3) var(--lucid-ease-out) both;
+}
+@keyframes lucid-status-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+#status[data-tone="ok"] {
+  color: var(--lucid-fg);
+  background: var(--lucid-ok-soft);
+  border-color: color-mix(in srgb, var(--lucid-ok) 35%, transparent);
+}
+#status[data-tone="error"] {
+  color: var(--lucid-fg);
+  background: var(--lucid-error-soft);
+  border-color: color-mix(in srgb, var(--lucid-error) 35%, transparent);
+}
+
+/* A checkmark that draws itself: two borders of a rotated box, scaled in. */
+#status[data-tone="ok"]::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 13px;
+  margin: -2px 3px 2px 2px;
+  border: solid var(--lucid-ok);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+  animation: lucid-check var(--lucid-dur-3) var(--lucid-ease-spring) both;
+}
+@keyframes lucid-check {
+  from { opacity: 0; transform: rotate(45deg) scale(0.2); }
+  to   { opacity: 1; transform: rotate(45deg) scale(1); }
+}
+
+#status[data-tone="error"]::before {
+  content: "";
+  flex: none;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--lucid-error);
+  -webkit-mask:
+    linear-gradient(#000, #000) 50% 3px / 2px 6px no-repeat,
+    linear-gradient(#000, #000) 50% 11px / 2px 2px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+  -webkit-mask-composite: xor;
+          mask:
+    linear-gradient(#000, #000) 50% 3px / 2px 6px no-repeat,
+    linear-gradient(#000, #000) 50% 11px / 2px 2px no-repeat,
+    radial-gradient(farthest-side, #000 100%, transparent) 50% 50% / 100% 100% no-repeat;
+          mask-composite: exclude;
+}
+
+/* -------------------------------------------------------------------------
+   SHORTCUTS
+   ------------------------------------------------------------------------- */
+kbd {
+  padding: 3px 8px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
+  font-size: 0.8em;
+  color: var(--lucid-fg);
+  background: var(--lucid-surface);
+  border: 1px solid var(--lucid-border);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+}
+.shortcuts li { padding: 9px 0; align-items: center; }
+.shortcuts li + li { border-top: 1px solid var(--lucid-border); }
+.shortcuts li > span:last-child:not(:has(kbd)) { color: var(--lucid-muted); font-size: 0.9em; }
+
+/* -------------------------------------------------------------------------
+   REDUCED MOTION
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  #status,
+  #status[data-tone="ok"]::before { animation: none !important; }
+  .row input[type="checkbox"]::after,
+  input[type="range"]::-webkit-slider-thumb,
+  button { transition: none; }
+  button:hover,
+  button:active { transform: none; }
+  .row input[type="checkbox"]:active::after { width: 18px; }
+}
+
+/* -------------------------------------------------------------------------
+   FORCED COLORS - last.
+   ------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  :root {
+    --lucid-bg: Canvas;
+    --lucid-surface: Canvas;
+    --lucid-fg: CanvasText;
+    --lucid-muted: CanvasText;
+    --lucid-border: CanvasText;
+    --lucid-border-strong: CanvasText;
+    --lucid-accent: Highlight;
+    --lucid-accent-fg: HighlightText;
+    --lucid-accent-soft: Canvas;
+    --lucid-shadow: none;
+    --lucid-hairline: none;
+  }
+  h1::before { forced-color-adjust: none; background: Highlight; }
+  fieldset { box-shadow: none; }
+  .row input[type="checkbox"] { border: 1px solid CanvasText; }
+  .row input[type="checkbox"]::after { background: CanvasText; }
+  .row input[type="checkbox"]:checked { background: Highlight; }
+  .row input[type="checkbox"]:checked::after { background: HighlightText; }
+  input[type="range"]::-webkit-slider-runnable-track { background: CanvasText; }
+  input[type="range"]::-webkit-slider-thumb { background: Canvas; border-color: Highlight; }
+  #status[data-tone="ok"]::before { border-color: Highlight; }
+  #status[data-tone="error"]::before { background: CanvasText; }
+}

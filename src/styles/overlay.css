@@ -1,0 +1,199 @@
+/*
+ * Lucid - overlay.css
+ * ===========================================================================
+ * Design-owned. Adopted into the overlay layer's shadow root (highlight.ts)
+ * after its built-in styles.
+ *
+ * THE HARD CONSTRAINT: these boxes are drawn over somebody else's page. We do
+ * not know the background behind them - white, near-black, a photograph, a
+ * gradient - and prefers-color-scheme tells us about the user's OS, not about
+ * the page. So every mark here is built to survive any backdrop:
+ *
+ *   1. A dual halo. Every edge carries a dark ring and a light ring stacked
+ *      one pixel apart, so whichever way the backdrop goes, one of them
+ *      separates the mark from it. This is why the box-shadows look doubled.
+ *   2. Translucent washes, never opaque fills. A wash tints the backdrop and
+ *      leaves the page's own text at its own contrast - the text stays exactly
+ *      as readable as the site made it.
+ *   3. Nothing is ever drawn over the glyphs themselves at full strength. The
+ *      word marker's solid element is a bar beneath the baseline.
+ *
+ * ROLES - two marks, two meanings, never mixed:
+ *   .word     amber. "This word is being spoken right now."
+ *   .fill     accent. "This block is what Lucid is working on."
+ *   .outline  accent ring. "This is the thing I am describing."
+ *
+ * The word marker moves once per spoken word. For the smooth gliding cursor
+ * instead of a box that reappears in a new place each time, see
+ * src/design/reading-cursor.ts - this file styles the plain path, which stays
+ * the fallback and still looks deliberate.
+ */
+
+:host {
+  /* -- LUCID TOKENS (subset the overlay needs) ------------------------- */
+  --lucid-accent: #2a46d8;
+  --lucid-read: #ffc53d;
+  --lucid-read-deep: #8a5300;
+  --lucid-dur-1: 120ms;
+  --lucid-dur-2: 180ms;
+  --lucid-dur-3: 240ms;
+  --lucid-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --lucid-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lucid-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+
+  /* The dual halo, as reusable pieces. */
+  --lucid-halo-dark: rgba(8, 10, 16, 0.42);
+  --lucid-halo-light: rgba(255, 255, 255, 0.92);
+  /* -- END LUCID TOKENS ------------------------------------------------ */
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    --lucid-accent: #8aaaff;
+    --lucid-read: #ffce55;
+    --lucid-halo-dark: rgba(0, 0, 0, 0.6);
+    --lucid-halo-light: rgba(255, 255, 255, 0.7);
+  }
+}
+
+.box {
+  border-radius: 4px;
+}
+
+/* -------------------------------------------------------------------------
+   OUTLINE - "this is the thing I am describing". A focus ring with corner
+   brackets, like a lens acquiring its subject. One-shot entrance, no loop:
+   this sits on screen for as long as a description takes to read.
+   ------------------------------------------------------------------------- */
+.outline {
+  border: 2px solid var(--lucid-accent);
+  border-radius: 6px;
+  box-shadow:
+    0 0 0 1px var(--lucid-halo-light),
+    0 0 0 4px var(--lucid-halo-dark),
+    0 0 18px -4px var(--lucid-accent);
+  animation: lucid-acquire var(--lucid-dur-3) var(--lucid-ease-out) both;
+}
+
+/* Corner brackets, drawn from two pseudo-elements: each contributes one
+   corner, so the pair reads as a viewfinder without extra markup. */
+.outline::before,
+.outline::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border: 2px solid var(--lucid-accent);
+}
+.outline::before {
+  inset-block-start: -6px;
+  inset-inline-start: -6px;
+  border-width: 2px 0 0 2px;
+  border-radius: 4px 0 0 0;
+}
+.outline::after {
+  inset-block-end: -6px;
+  inset-inline-end: -6px;
+  border-width: 0 2px 2px 0;
+  border-radius: 0 0 4px 0;
+}
+
+@keyframes lucid-acquire {
+  from { opacity: 0; transform: scale(1.035); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* -------------------------------------------------------------------------
+   FILL - the block Lucid is working on, and the current paragraph in Reading
+   Mode. Deliberately quiet: a wash plus a rail on the leading edge, so it
+   frames the text without competing with the word marker inside it.
+   ------------------------------------------------------------------------- */
+.fill {
+  background: color-mix(in srgb, var(--lucid-accent) 9%, transparent);
+  border: 0;
+  border-radius: 5px;
+  box-shadow:
+    inset 3px 0 0 0 var(--lucid-accent),
+    0 0 0 1px color-mix(in srgb, var(--lucid-accent) 26%, transparent);
+  animation: lucid-wash var(--lucid-dur-3) var(--lucid-ease-out) both;
+}
+
+@keyframes lucid-wash {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* -------------------------------------------------------------------------
+   WORD - the marker that advances with the voice.
+   Amber wash for the lozenge, a solid amber bar beneath the baseline, dual
+   halo on both. The bar is what the eye actually tracks; the wash only tells
+   you which word it belongs to. Because the bar sits below the text, nothing
+   solid is ever drawn across the glyphs.
+   ------------------------------------------------------------------------- */
+.word {
+  /* Override the built-in opaque fill and blend mode outright - a blend mode
+     that is right on a white page is wrong on a dark one, and we cannot tell
+     which we are on. */
+  mix-blend-mode: normal;
+  background: color-mix(in srgb, var(--lucid-read) 30%, transparent);
+  border-radius: 3px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--lucid-read) 55%, transparent),
+    0 0 0 2px var(--lucid-halo-dark);
+  animation: lucid-word-in var(--lucid-dur-1) var(--lucid-ease-out) both;
+}
+
+/* The tracked bar. Sits just below the box, so descenders stay clear. */
+.word::after {
+  content: "";
+  position: absolute;
+  inset-block-end: -3px;
+  inset-inline: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--lucid-read);
+  box-shadow:
+    0 0 0 1px var(--lucid-halo-dark),
+    0 1px 6px -1px var(--lucid-read);
+}
+
+@keyframes lucid-word-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* -------------------------------------------------------------------------
+   REDUCED MOTION - the marks still appear, they just do not travel or scale.
+   Reading Mode stays fully usable: position is the information, motion was
+   only ever the polish.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .outline,
+  .fill,
+  .word {
+    animation: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   FORCED COLORS - last. The OS palette is the only thing that renders here,
+   so drop the washes and speak in Highlight.
+   ------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .outline,
+  .fill,
+  .word {
+    forced-color-adjust: none;
+    background: transparent;
+    border: 2px solid Highlight;
+    box-shadow: none;
+  }
+  .outline::before,
+  .outline::after { border-color: Highlight; }
+  .fill { border-width: 1px; }
+  .word {
+    background: Highlight;
+    color: HighlightText;
+  }
+  .word::after { background: Highlight; box-shadow: none; }
+}

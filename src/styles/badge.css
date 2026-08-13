@@ -1,0 +1,210 @@
+/*
+ * Lucid - badge.css
+ * ===========================================================================
+ * The flag Lucid pins to charts it can read. Written against the markup that
+ * actually shipped in src/content/features/chart.ts:
+ *
+ *   #lucid-chart-badges          host, position: fixed, inert
+ *     -> shadow root
+ *          <button class="badge">   32x32, positioned by inline top/left
+ *            <svg>three bars</svg>
+ *
+ * ONE LINE IS NEEDED TO TURN THIS ON. The chart feature builds its shadow root
+ * with its own <style> and never adopts a design stylesheet, so this file is
+ * currently dead weight in the build. In ensureLayer(), after `root.append(style)`:
+ *
+ *     adoptExternalStyles(root, 'badge.css');
+ *
+ * That is the same hook panel.ts and highlight.ts already use, and it belongs
+ * to the Chart worker to add - this file does not touch their file. Until it
+ * lands, their built-in styling stands on its own and nothing is broken.
+ *
+ * WHY THERE IS NO IDLE ANIMATION
+ *
+ * A dashboard can carry a dozen charts. A pulse on each one turns a page into
+ * a slot machine and makes Lucid the most annoying thing the user installed
+ * this week. At rest the badge holds still. It arrives once, quietly, and then
+ * answers only to the pointer or the keyboard.
+ *
+ * The arrival animation is deliberately the plain kind that runs when an
+ * element is created - no data attribute, no JavaScript. Note that the feature
+ * hides off-screen badges with display:none, so a badge scrolled back into
+ * view arrives again. That is why the arrival is a 420ms settle and not a
+ * ripple: it has to be something you would not mind seeing twice.
+ */
+
+:host {
+  /* -- LUCID TOKENS ------------------------------------------- (light) -- */
+  --lucid-bg: #ffffff;
+  --lucid-surface: #f5f7fb;
+  --lucid-fg: #0f1218;
+  --lucid-muted: #59617a;
+  --lucid-border: #e3e6ef;
+  --lucid-border-strong: #c9d0e0;
+  --lucid-accent: #2a46d8;
+  --lucid-accent-fg: #ffffff;
+  --lucid-accent-soft: rgba(42, 70, 216, 0.1);
+  --lucid-accent-ring: rgba(42, 70, 216, 0.35);
+  --lucid-ok: #10684a;
+  --lucid-aurora-1: #6e5cff;
+  --lucid-aurora-2: #17b8e8;
+  --lucid-aurora-3: #2fd9a6;
+  --lucid-radius: 10px;
+  --lucid-dur-1: 120ms;
+  --lucid-dur-2: 180ms;
+  --lucid-dur-3: 240ms;
+  --lucid-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --lucid-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --lucid-ease-spring: cubic-bezier(0.34, 1.4, 0.5, 1);
+  /* Sitting over an unknown chart, so it carries its own separation. */
+  --lucid-halo-dark: rgba(8, 10, 16, 0.28);
+  --lucid-shadow: 0 1px 2px var(--lucid-halo-dark), 0 4px 12px -4px var(--lucid-halo-dark);
+  /* -- END LUCID TOKENS -------------------------------------------------- */
+}
+
+@media (prefers-color-scheme: dark) {
+  :host {
+    /* -- LUCID TOKENS ---------------------------------------- (dark) -- */
+    --lucid-bg: #14171f;
+    --lucid-surface: #1b1f29;
+    --lucid-fg: #edf0f7;
+    --lucid-muted: #9aa3b8;
+    --lucid-border: #2a303d;
+    --lucid-border-strong: #3a4252;
+    --lucid-accent: #8aaaff;
+    --lucid-accent-fg: #0b0e15;
+    --lucid-accent-soft: rgba(138, 170, 255, 0.16);
+    --lucid-accent-ring: rgba(138, 170, 255, 0.45);
+    --lucid-ok: #6fdcae;
+    --lucid-aurora-1: #8d7cff;
+    --lucid-aurora-2: #3fd0ff;
+    --lucid-aurora-3: #4df0bc;
+    --lucid-halo-dark: rgba(0, 0, 0, 0.55);
+    /* -- END LUCID TOKENS ------------------------------------------------ */
+  }
+}
+
+.badge {
+  width: 30px;
+  height: 30px;
+  color: var(--lucid-accent);
+  background: var(--lucid-bg);
+  border: 1px solid var(--lucid-border-strong);
+  border-radius: 999px;
+  box-shadow: var(--lucid-shadow);
+  /* Present, not shouting. */
+  opacity: 0.82;
+  transition:
+    opacity var(--lucid-dur-2) var(--lucid-ease),
+    color var(--lucid-dur-2) var(--lucid-ease),
+    background var(--lucid-dur-2) var(--lucid-ease),
+    border-color var(--lucid-dur-2) var(--lucid-ease),
+    box-shadow var(--lucid-dur-2) var(--lucid-ease),
+    transform var(--lucid-dur-2) var(--lucid-ease-out);
+  /* Arrival: runs once, when the badge is created. */
+  animation: lucid-badge-in var(--lucid-dur-4, 380ms) var(--lucid-ease-spring) both;
+}
+
+.badge svg { width: 15px; height: 15px; }
+/* The bars rise to their own heights as the badge settles - the mark draws
+   itself once, which is a nicer first impression than a static icon fading. */
+.badge svg rect {
+  transform-origin: 50% 100%;
+  animation: lucid-bar-rise 320ms var(--lucid-ease-out) both;
+}
+.badge svg rect:nth-child(2) { animation-delay: 60ms; }
+.badge svg rect:nth-child(3) { animation-delay: 120ms; }
+
+@keyframes lucid-badge-in {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 0.82; transform: scale(1); }
+}
+@keyframes lucid-bar-rise {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+/* -- Invitation ----------------------------------------------------------
+   Hover and keyboard focus get the same treatment. A keyboard user is not a
+   second-class visitor. */
+.badge:hover,
+.badge:focus-visible {
+  opacity: 1;
+  color: var(--lucid-accent-fg);
+  background: var(--lucid-accent);
+  border-color: transparent;
+  box-shadow: 0 2px 4px var(--lucid-halo-dark), 0 8px 20px -5px var(--lucid-accent-ring);
+  transform: translateY(-1px) scale(1.06);
+}
+.badge:focus-visible {
+  outline: 2px solid var(--lucid-accent);
+  outline-offset: 3px;
+}
+.badge:active { transform: translateY(0) scale(0.96); }
+
+/* -- Working -------------------------------------------------------------
+   Optional: set data-state="busy" on the button while its chart is being
+   read, and the badge wears the same aperture the panel wears, so the two are
+   visibly the same product doing the same thing. */
+.badge[data-state="busy"] {
+  opacity: 1;
+  border-color: transparent;
+  background:
+    conic-gradient(
+      from 0turn,
+      transparent 0deg,
+      var(--lucid-aurora-1) 90deg,
+      var(--lucid-aurora-2) 190deg,
+      var(--lucid-aurora-3) 280deg,
+      transparent 360deg
+    ) border-box,
+    linear-gradient(var(--lucid-bg), var(--lucid-bg)) padding-box;
+  border: 2px solid transparent;
+  animation: lucid-badge-spin 1.9s linear infinite;
+}
+.badge[data-state="busy"] svg { animation: none; opacity: 0.35; }
+@keyframes lucid-badge-spin { to { rotate: 1turn; } }
+
+/* Optional: data-state="done" - a quiet confirmation, not a trophy. */
+.badge[data-state="done"] { color: var(--lucid-ok); border-color: var(--lucid-ok); }
+
+/* -------------------------------------------------------------------------
+   REDUCED MOTION - the badge still arrives and still invites. It just does
+   not travel or scale to say so.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .badge,
+  .badge svg rect,
+  .badge[data-state="busy"] {
+    animation: none !important;
+  }
+  .badge { opacity: 0.9; }
+  .badge:hover,
+  .badge:focus-visible,
+  .badge:active { transform: none; }
+  .badge[data-state="busy"] {
+    background: var(--lucid-accent-soft);
+    border: 2px solid var(--lucid-accent);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   FORCED COLORS - last. The feature's own rules already do the right thing;
+   these keep our additions from undoing them.
+   ------------------------------------------------------------------------- */
+@media (forced-colors: active) {
+  .badge {
+    forced-color-adjust: none;
+    opacity: 1;
+    background: ButtonFace;
+    color: ButtonText;
+    border: 1px solid ButtonBorder;
+    box-shadow: none;
+    animation: none;
+  }
+  .badge:hover,
+  .badge:focus-visible { background: Highlight; color: HighlightText; }
+  .badge svg rect { animation: none; }
+  .badge[data-state="busy"] { background: ButtonFace; border: 2px solid Highlight; }
+  .badge[data-state="done"] { color: Highlight; border-color: Highlight; }
+}
