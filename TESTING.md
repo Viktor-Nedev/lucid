@@ -27,6 +27,17 @@ Load `dist/` at `chrome://extensions` with Developer mode on, then open
 >
 > If you must use `file://`, tick the box first and reload the extension.
 
+> ### ⚠️ Lucid does not run inside iframes
+>
+> The content script is registered `all_frames: false`, so only the top-level document is in
+> scope. Anything inside an iframe — an embedded CodePen, an iframed dashboard, a third-party
+> chart widget — is invisible to Lucid and pressing a hotkey over it does nothing.
+>
+> This is a known scope boundary, not a bug. Before filing anything as broken, check in DevTools
+> whether the element you are pointing at actually lives in an iframe. Some of the public URLs
+> below may embed their charts this way; if one does, that is the limitation showing, not a
+> failure.
+
 After every rebuild, hit reload on the Lucid card in `chrome://extensions`. A stale content script
 is the second most common way to waste ten minutes.
 
@@ -277,14 +288,8 @@ Before recording or demoing, run this end to end on `demo/index.html`:
 
 ## Feature status
 
-**TODO** — filled in at integration time, once features land.
+Kept in one place only, to stop the two files drifting apart:
+see [Feature status in README.md](README.md#feature-status).
 
-| Behavior | Status | Notes |
-|---|---|---|
-| 1. `Alt`+`Shift`+`R` read selection | _TODO_ | |
-| 2. `Alt`+`Shift`+`E` describe visual | _TODO_ | |
-| 3. `Alt`+`Shift`+`L` reading mode | _TODO_ | |
-| 4. `Alt`+`Shift`+`S` simplify | _TODO_ | |
-| 5. Chart trend narration | _TODO_ | |
-| 6. Unlabeled field help | _TODO_ | |
-| 7. Voice commands | _TODO_ | |
+At the time of writing, reading mode and voice are still stubs — expect those two sections above
+to fail until they land.

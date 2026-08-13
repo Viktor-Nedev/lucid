@@ -111,12 +111,21 @@
   aside ul { margin: 0; padding-left: 17px; font-size: 14px; }
   aside li { margin-bottom: 7px; }
   aside .box.tint { background: var(--teal-soft); border-color: #c5dde3; }
+  aside .box p { margin: 0 0 10px; font-size: 14px; }
+  aside .box p:last-child { margin-bottom: 0; }
+  aside .box.dark { background: #11242e; border-color: #11242e; color: #cfe0e6; }
+  aside .box.dark h4 { color: #8fb4c1; }
+  aside .box.dark a { color: #fff; }
+  aside .kv { font-size: 14px; margin: 0; }
+  aside .kv div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  aside .kv div:last-child { border-bottom: 0; }
+  aside .kv b { font-variant-numeric: tabular-nums; }
 
   .alerts { border-top: 3px solid var(--deep); background: var(--surface); margin-top: 54px; }
   .alerts .inner { max-width: 1060px; margin: 0 auto; padding: 38px 24px 44px; }
   .alerts h2 { font-family: var(--serif); font-size: 25px; margin: 0 0 8px; }
   .alerts .lede { color: var(--ink-soft); max-width: 60ch; margin: 0 0 24px; }
-  .fieldrow { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 18px 22px; }
+  .fieldrow { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 18px 22px; max-width: 622px; }
   @media (max-width: 680px) { .fieldrow { grid-template-columns: 1fr; } }
   .f { display: flex; flex-direction: column; gap: 5px; }
   .f .cap { font-size: 13px; font-weight: 600; }
@@ -126,7 +135,10 @@
     border-radius: 6px; background: #fff; width: 100%;
   }
   .f input.bad { border-color: #a2401a; }
-  .apt { max-width: 118px; }
+  .f.span2 { grid-column: 1 / -1; }
+  .addrrow { display: flex; gap: 10px; }
+  .addrrow #ad { flex: 1 1 auto; }
+  .addrrow .apt { flex: 0 0 112px; width: 112px; }
   .err { color: #8f3a14; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-top: 4px; }
   .go { margin-top: 22px; background: var(--deep); color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 15px; padding: 11px 22px; cursor: pointer; }
   .go:hover { background: #0a3946; }
@@ -370,7 +382,7 @@
     <p style="margin:0 0 10px;font-size:14px">
       We will collect and analyse a sample from your kitchen tap at no cost.
     </p>
-    <p style="margin:0;font-size:14px"><a href="#testing">Request a test kit</a></p>
+    <p style="margin:0;font-size:14px"><a href="#alerts">Request a test kit</a></p>
   </div>
 
   <div class="box">
@@ -391,11 +403,71 @@
       <li><a href="#r2022">2022 report</a></li>
     </ul>
   </div>
+
+  <div class="box">
+    <h4>2025 at a glance</h4>
+    <div class="kv">
+      <div><span>Samples collected</span><b>3,184</b></div>
+      <div><span>Contaminants tested</span><b>91</b></div>
+      <div><span>Within limits</span><b>99.4%</b></div>
+      <div><span>Action levels exceeded</span><b>1</b></div>
+      <div><span>Service lines replaced</span><b>212</b></div>
+      <div><span>Mains flushed</span><b>68 km</b></div>
+    </div>
+  </div>
+
+  <div class="box">
+    <h4>If you have a lead line</h4>
+    <p>Run the cold tap for thirty seconds before drinking if the water has been standing
+      overnight.</p>
+    <p>Use cold water for drinking and cooking. Hot water dissolves lead faster.</p>
+    <p>Clean the tap aerator every few months.</p>
+    <p><a href="#lead">Check whether your street is affected</a></p>
+  </div>
+
+  <div class="box">
+    <h4>Replacement programme</h4>
+    <p>We are replacing every lead service line in the district by 2031, at no cost to the
+      property owner.</p>
+    <p>Eastfield is being done first. Households there should expect a letter before any work
+      starts on their street.</p>
+    <p><a href="#programme">Programme timetable</a></p>
+  </div>
+
+  <div class="box">
+    <h4>Words used in this report</h4>
+    <p><b>ppb</b> — parts per billion. One ppb is roughly one drop in an Olympic pool.</p>
+    <p><b>Action level</b> — the concentration at which a utility must take corrective steps. For
+      lead it is 15 ppb. It is a trigger for action, not a safety threshold.</p>
+    <p><b>Ninetieth percentile</b> — compliance is judged on this, not on the worst single
+      sample. One high reading is not automatically a violation.</p>
+    <p><b>Corrosion control</b> — treatment that stops pipe metal dissolving into the water.</p>
+    <p><b>Primacy agency</b> — the state body that enforces federal drinking water rules.</p>
+  </div>
+
+  <div class="box">
+    <h4>Where your water comes from</h4>
+    <div class="kv">
+      <div><span>Calder Reservoir</span><b>71%</b></div>
+      <div><span>Eastfield aquifer</span><b>26%</b></div>
+      <div><span>Purchased supply</span><b>3%</b></div>
+    </div>
+    <p style="margin-top:12px">Surface water is treated at the Calder works. Groundwater from the
+      four Eastfield wells is treated locally before it joins the distribution network.</p>
+  </div>
+
+  <div class="box dark">
+    <h4>Water quality team</h4>
+    <p>Monday to Friday, 8am to 6pm.</p>
+    <p><a href="#contact">quality@harborbaywater.example</a><br>
+      <a href="#contact">(555) 0148-2214</a></p>
+    <p>Out of hours, use the 24-hour emergency line.</p>
+  </div>
 </aside>
 </div>
 </main>
 
-<section class="alerts">
+<section class="alerts" id="alerts">
   <div class="inner">
     <h2>Get notified about your water</h2>
     <p class="lede">
@@ -416,10 +488,17 @@
           <input type="text" id="em">
         </div>
 
-        <div class="f">
+        <div class="f span2">
           <div class="cap">Service address</div>
           <div class="hint">The address the water is supplied to.</div>
-          <input type="text" id="ad">
+          <!-- Two inputs, one caption. The narrow one has no label, no hint and no
+               placeholder of its own -- its purpose can only be inferred from sitting
+               beside an address field. Visually it reads as a normal shipped form;
+               programmatically it is as unlabelled as the orphan box it replaced. -->
+          <div class="addrrow">
+            <input type="text" id="ad">
+            <input type="text" id="ap" class="apt">
+          </div>
           <div class="err" id="adErr" hidden>E_ADDR_FMT: value failed pattern validation</div>
         </div>
 
@@ -428,11 +507,6 @@
           <div class="hint">Ten digits, printed at the top right of your bill.</div>
           <input type="text" id="ac">
         </div>
-      </div>
-
-      <!-- No caption, no hint, no label. Purpose has to come from the row above it. -->
-      <div class="f apt" style="margin-top:18px">
-        <input type="text" id="ap">
       </div>
 
       <button type="submit" class="go">Sign up for alerts</button>
@@ -454,7 +528,7 @@
       <h5>Water quality</h5>
       <ul>
         <li><a href="#quality">Annual reports</a></li>
-        <li><a href="#testing">Request a test kit</a></li>
+        <li><a href="#alerts">Request a test kit</a></li>
         <li><a href="#lead">Lead service lines</a></li>
         <li><a href="#hardness">Water hardness</a></li>
       </ul>

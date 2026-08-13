@@ -116,15 +116,33 @@ the AI behaviors light up when you add a key.
 
 > API key setup flow: **TODO** — not yet documented here.
 
+## Known limitations
+
+**Lucid does not see inside iframes.** The content script is registered with `all_frames: false`,
+so it runs only on the top-level document. A chart, form, or block of text inside an iframe — an
+embedded CodePen, an iframed dashboard, a payment widget — is invisible to it, and pressing a
+hotkey over that content does nothing.
+
+This is a deliberate scope boundary rather than a bug. Injecting into every frame means injecting
+into every ad slot and tracking pixel on the page, which is the wrong trade for a build this size.
+If a page seems unresponsive, check in DevTools whether the thing you are pointing at is in an
+iframe before assuming Lucid is broken.
+
+The demo page is entirely top-level, so it is unaffected.
+
 ## Feature status
 
-**TODO** — statuses are filled in once features land; do not read anything into the blanks yet.
-
-| Feature | Status | Notes |
+| Behavior | Status | Notes |
 |---|---|---|
-| _TODO_ | _TODO_ | _TODO_ |
+| Read selection — `Alt`+`Shift`+`R` | **Working** | Verified in a browser. Needs no API key. |
+| Simplify — `Alt`+`Shift`+`S` | **Working** | Verified in a browser. |
+| Chart trend narration | **Working** | Verified in a browser. Library-blind detection. |
+| Explain — `Alt`+`Shift`+`E` | **Landed** | Implemented; browser confirmation not yet relayed. |
+| Unlabeled field help | **Landed** | Implemented; browser confirmation not yet relayed. |
+| Reading mode — `Alt`+`Shift`+`L` | **Stubbed** | `src/content/features/reading.ts` is still a stub. |
+| Voice commands | **Stubbed** | `src/content/features/voice.ts` is still a stub. No default key. |
 
-Legend, once populated: **Working** — demo-ready · **Partial** — works with caveats ·
+**Working** — demo-ready · **Landed** — code is in, not yet confirmed working end to end ·
 **Stubbed** — wired up, not yet implemented.
 
 ---
