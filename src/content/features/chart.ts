@@ -25,6 +25,7 @@
 
 import type { ChartData } from '../../shared/messages.js';
 import { cacheKeyFor } from '../../shared/storage.js';
+import { adoptExternalStyles } from '../../shared/theme.js';
 import type { FeatureContext } from '../context.js';
 
 /** Below this a region is an icon or a sparkline, not a chart worth reading. */
@@ -67,6 +68,10 @@ export function register(ctx: FeatureContext): void {
     const style = document.createElement('style');
     style.textContent = BADGE_CSS;
     root.append(style);
+    // Design-owned styling, adopted after the built-in rules so it wins.
+    // Absent in a build without src/styles/, in which case the structural CSS
+    // above stands on its own.
+    adoptExternalStyles(root, 'badge.css');
     document.documentElement.append(layer);
     return root;
   }
@@ -252,6 +257,12 @@ export function register(ctx: FeatureContext): void {
   async function describeChart(el: Element): Promise<void> {
     ctx.panel.show({ title: 'Reading the chart', busy: true, status: 'Reading values…' });
 
+    // The design stylesheet renders 'busy' and 'done' states for the badge;
+    // reading a chart takes seconds, so the badge says so rather than looking
+    // like a press that did nothing.
+    const badge = badges.get(el);
+    if (badge) badge.dataset.state = 'busy';
+
     try {
       // The badge is drawn on top of the chart; capture would photograph it.
       hideBadges();
@@ -271,6 +282,7 @@ export function register(ctx: FeatureContext): void {
       // user pressed Escape would resurrect a panel they deliberately closed.
       if (!ctx.panel.isOpen()) {
         ctx.log.debug('panel dismissed while reading the chart; dropping result');
+        if (badge) delete badge.dataset.state;
         return;
       }
 
@@ -295,9 +307,11 @@ export function register(ctx: FeatureContext): void {
         error: undefined,
       });
 
+      if (badge) badge.dataset.state = 'done';
       await speakNarration(lastNarration);
     } catch (err) {
       showBadges();
+      if (badge) delete badge.dataset.state;
       ctx.panel.setError(err instanceof Error ? err.message : String(err));
     }
   }
