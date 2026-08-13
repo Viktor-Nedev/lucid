@@ -139,7 +139,7 @@ The demo page is entirely top-level, so it is unaffected.
 | Chart trend narration | **Working** | Verified in a browser. Library-blind detection. |
 | Explain — `Alt`+`Shift`+`E` | **Landed** | Implemented; browser confirmation not yet relayed. |
 | Unlabeled field help | **Landed** | Implemented; browser confirmation not yet relayed. |
-| Reading mode — `Alt`+`Shift`+`L` | **Stubbed** | `src/content/features/reading.ts` is still a stub. |
+| Reading mode — `Alt`+`Shift`+`L` | **Landed** | Landed in `af041ec` with a synced word highlight. |
 | Voice commands | **Stubbed** | `src/content/features/voice.ts` is still a stub. No default key. |
 
 **Working** — demo-ready · **Landed** — code is in, not yet confirmed working end to end ·
@@ -182,7 +182,8 @@ python -m http.server 8000 --directory demo
 >
 > Serving over `http://localhost` sidesteps it entirely, and is what the demo assumes.
 
-See [TESTING.md](TESTING.md) for what to click and what should happen.
+See [TESTING.md](TESTING.md) for what to click and what should happen, and
+[DEMO.md](DEMO.md) for the demo video shot list and narration script.
 
 ---
 
@@ -193,4 +194,5 @@ See [TESTING.md](TESTING.md) for what to click and what should happen.
 | `demo/` | fixtures | Demo page and test fixtures |
 | `README.md` | fixtures | This file |
 | `TESTING.md` | fixtures | Manual test walkthrough |
+| `DEMO.md` | fixtures | Demo video plan and narration script |
 | `ARCHITECTURE.md` | core | Extension internals |
