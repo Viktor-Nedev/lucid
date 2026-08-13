@@ -167,8 +167,18 @@ legend {
   color: var(--lucid-muted);
 }
 
+/* Structure, not just paint. The page's own <style> already declares these,
+   but this stylesheet must not depend on that - anything else embedding it
+   (the design preview does) would otherwise get inline labels and a form that
+   looks broken. */
 .field { margin-top: 22px; }
-label { font-weight: 500; margin-bottom: 6px; letter-spacing: -0.006em; }
+label { display: block; font-weight: 500; margin-bottom: 6px; letter-spacing: -0.006em; }
+.actions { display: flex; flex-wrap: wrap; }
+.shortcuts { margin: 8px 0 0; padding: 0; list-style: none; }
+input[type="text"],
+input[type="password"],
+select,
+input[type="range"] { width: 100%; }
 .help { margin-top: 6px; font-size: 0.85rem; color: var(--lucid-muted); text-wrap: pretty; }
 .help a { color: var(--lucid-accent); text-underline-offset: 2px; }
 
@@ -227,8 +237,9 @@ select {
    Every checkbox becomes one. The input keeps doing all the work - this is
    paint only, so Space still toggles it and the label still targets it.
    ------------------------------------------------------------------------- */
-.row { gap: 13px; align-items: center; }
-.row label { cursor: pointer; }
+.row { display: flex; gap: 13px; align-items: center; }
+.row label { display: inline; margin: 0; font-weight: 400; cursor: pointer; }
+.shortcuts li { display: flex; justify-content: space-between; gap: 16px; }
 
 .row input[type="checkbox"] {
   appearance: none;

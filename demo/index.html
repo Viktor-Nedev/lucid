@@ -27,90 +27,212 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2025 Annual Water Quality Report - Harbor Bay Water District</title>
 <style>
+  /*
+    Harbor Bay Water District - a real municipal utility's annual report.
+
+    Restyled by the design owner so the page holds its own next to the
+    extension on camera. It shares Lucid's CRAFT - the same spacing rhythm, the
+    same layered elevation, the same 150-240ms eased motion - but deliberately
+    NOT Lucid's palette. This is a water utility: deep teal and paper, serif
+    headings, tabular figures. If the demo page wore Lucid's indigo it would
+    read as part of the extension, and the whole pitch is that Lucid works on
+    somebody else's website.
+
+    The accessibility failures are still here on purpose: the alerts form has
+    no <label>, no aria-label and no aria-labelledby anywhere, the reservoir
+    photo has no alt text, and the compliance prose is unreadable by design.
+    Styling makes the lone apartment field look like a real field a sighted
+    person would fill in without thinking - which is exactly the trap. Nothing
+    below adds an accessible name to anything.
+  */
   :root {
     --ink: #16212b;
     --ink-soft: #55636f;
-    --line: #dbe3e8;
+    --ink-faint: #7b8894;
+    --line: #e2e8ec;
+    --line-strong: #cbd6dd;
     --deep: #0d4553;
     --teal: #0a6c7e;
-    --teal-soft: #e6f1f4;
-    --surface: #f5f8f9;
+    --teal-bright: #12879e;
+    --teal-soft: #eaf3f6;
+    --surface: #f6f9fa;
+    --paper: #ffffff;
     --warn: #9a4b16;
+    --warn-soft: #fdf3ec;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+
+    /* Elevation: three layers, so a card sits in the page rather than on it. */
+    --lift: 0 1px 2px rgba(13, 40, 53, .05), 0 4px 12px -4px rgba(13, 40, 53, .09);
+    --lift-2: 0 1px 2px rgba(13, 40, 53, .06), 0 10px 28px -8px rgba(13, 40, 53, .16);
+    --hair: inset 0 1px 0 rgba(255, 255, 255, .9);
+
+    /* Same motion scale as the extension. */
+    --fast: 150ms;
+    --med: 220ms;
+    --ease: cubic-bezier(.22, 1, .36, 1);
   }
 
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: var(--sans); color: var(--ink); background: #fff; line-height: 1.6; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--paper);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* One focus ring for the whole site. */
+  a:focus-visible, button:focus-visible, input:focus-visible {
+    outline: 2px solid var(--teal-bright);
+    outline-offset: 2px;
+    border-radius: 3px;
+  }
 
   /* The only presenter affordance on the page. Not sticky - it scrolls away. */
   .hotkeys {
-    background: #11242e; color: #cfe0e6; font-size: 12.5px; letter-spacing: .01em;
-    padding: 7px 24px; display: flex; gap: 18px; flex-wrap: wrap; align-items: baseline;
+    background: linear-gradient(180deg, #14303c, #11242e);
+    color: #cfe0e6; font-size: 12.5px; letter-spacing: .01em;
+    padding: 8px 24px; display: flex; gap: 18px; flex-wrap: wrap; align-items: center;
   }
   .hotkeys strong { color: #fff; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: 11px; }
   .hotkeys kbd {
-    font-family: var(--sans); font-size: 11.5px; background: #24404c; color: #fff;
-    border-radius: 3px; padding: 1.5px 5px; margin-right: 4px;
+    font-family: var(--sans); font-size: 11.5px; background: rgba(255, 255, 255, .14);
+    color: #fff; border: 1px solid rgba(255, 255, 255, .16); border-bottom-width: 2px;
+    border-radius: 4px; padding: 1.5px 6px; margin-right: 4px;
   }
 
-  header.site { border-bottom: 1px solid var(--line); }
-  .bar { max-width: 1060px; margin: 0 auto; padding: 15px 24px; display: flex; align-items: center; gap: 14px; }
-  .mark { display: flex; align-items: center; gap: 10px; }
+  /* --- Masthead ------------------------------------------------------- */
+  header.site {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    /* A brand rule across the very top - the sort of detail a real utility's
+       agency would have insisted on. */
+    box-shadow: inset 0 3px 0 0 var(--deep), 0 1px 0 0 rgba(13, 40, 53, .03);
+  }
+  .bar { max-width: 1060px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  .mark { display: flex; align-items: center; gap: 11px; }
+  .mark svg { filter: drop-shadow(0 1px 2px rgba(13, 69, 83, .28)); }
   .wordmark { font-family: var(--serif); font-size: 19px; font-weight: 600; letter-spacing: -0.01em; color: var(--deep); line-height: 1.15; }
-  .wordmark span { display: block; font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+  .wordmark span { display: block; font-family: var(--sans); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); margin-top: 2px; }
   nav.main { margin-left: auto; }
-  nav.main ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
-  nav.main a { color: var(--ink); text-decoration: none; padding-bottom: 3px; border-bottom: 2px solid transparent; }
-  nav.main a:hover { border-bottom-color: var(--teal); }
-  nav.main a.on { border-bottom-color: var(--teal); font-weight: 600; }
+  nav.main ul { display: flex; gap: 26px; list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  nav.main a {
+    color: var(--ink); text-decoration: none; padding-bottom: 4px;
+    border-bottom: 2px solid transparent;
+    transition: color var(--fast) var(--ease), border-color var(--fast) var(--ease);
+  }
+  nav.main a:hover { color: var(--teal); border-bottom-color: var(--teal-bright); }
+  nav.main a.on { border-bottom-color: var(--teal); font-weight: 600; color: var(--deep); }
 
-  .hero { background: var(--surface); border-bottom: 1px solid var(--line); }
-  .hero .inner { max-width: 1060px; margin: 0 auto; padding: 44px 24px 40px; }
-  .crumb { font-size: 12.5px; color: var(--ink-soft); margin-bottom: 14px; }
-  .crumb a { color: var(--ink-soft); }
-  h1 { font-family: var(--serif); font-size: 40px; line-height: 1.14; letter-spacing: -0.02em; margin: 0 0 12px; max-width: 17ch; }
-  .standfirst { font-size: 17.5px; color: var(--ink-soft); max-width: 62ch; margin: 0 0 20px; }
-  .issue { font-size: 13px; color: var(--ink-soft); border-top: 1px solid var(--line); padding-top: 14px; }
+  /* --- Hero ------------------------------------------------------------ */
+  .hero {
+    position: relative;
+    border-bottom: 1px solid var(--line);
+    background:
+      radial-gradient(120% 140% at 88% -10%, rgba(18, 135, 158, .10) 0%, transparent 58%),
+      linear-gradient(180deg, #fbfdfd 0%, var(--surface) 100%);
+    overflow: hidden;
+  }
+  .hero .inner { position: relative; max-width: 1060px; margin: 0 auto; padding: 52px 24px 46px; }
+  .crumb { font-size: 12.5px; color: var(--ink-faint); margin-bottom: 16px; letter-spacing: .01em; }
+  .crumb a { color: var(--ink-soft); text-decoration: none; }
+  .crumb a:hover { color: var(--teal); text-decoration: underline; }
+  h1 {
+    font-family: var(--serif); font-size: 44px; line-height: 1.1; letter-spacing: -0.024em;
+    margin: 0 0 14px; max-width: 17ch; color: var(--deep);
+  }
+  .standfirst { font-size: 18px; color: var(--ink-soft); max-width: 62ch; margin: 0 0 24px; text-wrap: pretty; }
+  .issue { font-size: 12.5px; color: var(--ink-faint); border-top: 1px solid var(--line-strong); padding-top: 16px; }
 
   main { max-width: 1060px; margin: 0 auto; padding: 0 24px 40px; }
-  .cols { display: grid; grid-template-columns: minmax(0,1fr) 268px; gap: 52px; align-items: start; }
+  .cols { display: grid; grid-template-columns: minmax(0,1fr) 280px; gap: 56px; align-items: start; }
   @media (max-width: 880px) { .cols { grid-template-columns: 1fr; gap: 34px; } }
 
-  article h2 { font-family: var(--serif); font-size: 25px; letter-spacing: -0.01em; margin: 44px 0 12px; }
-  article h3 { font-size: 15px; letter-spacing: .02em; text-transform: uppercase; color: var(--ink-soft); margin: 30px 0 8px; }
-  article p { margin: 0 0 15px; max-width: 68ch; }
-  article a { color: var(--teal); }
+  article h2 {
+    font-family: var(--serif); font-size: 27px; letter-spacing: -0.016em;
+    margin: 48px 0 14px; color: var(--deep); scroll-margin-top: 20px;
+  }
+  article h3 { font-size: 12.5px; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-faint); margin: 32px 0 8px; font-weight: 700; }
+  article p { margin: 0 0 16px; max-width: 68ch; text-wrap: pretty; }
+  article a { color: var(--teal); text-underline-offset: 2px; text-decoration-thickness: 1px; }
+  article a:hover { color: var(--teal-bright); }
 
-  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: 34px 0 8px; }
+  /* --- Key figures ----------------------------------------------------- */
+  .stats {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
+    background: var(--line); border: 1px solid var(--line);
+    border-radius: 12px; overflow: hidden; margin: 36px 0 8px;
+    box-shadow: var(--lift);
+  }
   @media (max-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
-  .stat { background: #fff; padding: 16px 18px; }
-  .stat b { display: block; font-family: var(--serif); font-size: 27px; line-height: 1.1; color: var(--deep); }
+  .stat {
+    background: var(--paper); padding: 18px 20px 17px; position: relative;
+    transition: background var(--fast) var(--ease);
+  }
+  .stat::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--teal-bright));
+    opacity: 0; transition: opacity var(--med) var(--ease);
+  }
+  .stat:hover { background: #fcfefe; }
+  .stat:hover::before { opacity: 1; }
+  .stat b {
+    display: block; font-family: var(--serif); font-size: 30px; line-height: 1.05;
+    color: var(--deep); letter-spacing: -0.02em; font-variant-numeric: tabular-nums;
+  }
   .stat span { font-size: 12.5px; color: var(--ink-soft); }
 
-  figure { margin: 26px 0; }
-  figure img, figure svg { display: block; width: 100%; border-radius: 8px; }
-  figure img { border: 1px solid var(--line); }
-  figcaption { font-size: 12.5px; color: var(--ink-soft); margin-top: 9px; max-width: 62ch; }
+  /* --- Figures --------------------------------------------------------- */
+  figure { margin: 30px 0; }
+  figure img, figure svg { display: block; width: 100%; border-radius: 12px; }
+  figure img { border: 1px solid var(--line); box-shadow: var(--lift); }
+  figcaption { font-size: 12.5px; color: var(--ink-faint); margin-top: 11px; max-width: 62ch; }
 
-  .chartcard { border: 1px solid var(--line); border-radius: 8px; padding: 18px 18px 12px; margin: 26px 0; }
-  .chartcard .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; }
-  .chartcard h4 { margin: 0; font-size: 15px; }
-  .chartcard .unit { font-size: 12.5px; color: var(--ink-soft); }
+  .chartcard {
+    border: 1px solid var(--line); border-radius: 14px; padding: 20px 20px 14px; margin: 30px 0;
+    background: var(--paper); box-shadow: var(--lift), var(--hair);
+  }
+  .chartcard .head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .chartcard h4 { margin: 0; font-size: 15px; color: var(--deep); letter-spacing: -0.005em; }
+  .chartcard .unit { font-size: 12.5px; color: var(--ink-faint); }
+  /* The canvas is drawn by script at a fixed pixel size; only ever scale it. */
   canvas { display: block; width: 100%; height: auto; }
 
-  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 20px 0; }
-  caption { text-align: left; font-size: 12.5px; color: var(--ink-soft); padding-bottom: 8px; }
-  th, td { border-bottom: 1px solid var(--line); padding: 9px 12px 9px 0; text-align: left; }
-  thead th { border-bottom: 1.5px solid #b9c6ce; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-soft); }
-  td.num, th.num { text-align: right; padding-right: 18px; }
+  /* --- Results table ---------------------------------------------------- */
+  table { border-collapse: collapse; width: 100%; font-size: 14px; margin: 22px 0; }
+  caption { text-align: left; font-size: 12.5px; color: var(--ink-faint); padding-bottom: 10px; }
+  th, td { border-bottom: 1px solid var(--line); padding: 11px 12px 11px 0; text-align: left; }
+  thead th {
+    border-bottom: 1.5px solid var(--line-strong); font-size: 11.5px; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--ink-faint); font-weight: 700; padding-bottom: 9px;
+  }
+  tbody tr { transition: background var(--fast) var(--ease); }
+  tbody tr:hover { background: var(--surface); }
+  td.num, th.num { text-align: right; padding-right: 18px; font-variant-numeric: tabular-nums; }
   .flag { color: var(--warn); font-weight: 600; }
+  /* The one result that exceeded an action level - the row the whole report is
+     about, so it carries a tint and a rail rather than relying on colour alone. */
+  tbody tr:has(.flag) { background: var(--warn-soft); box-shadow: inset 3px 0 0 0 var(--warn); }
+  tbody tr:has(.flag):hover { background: #fbeade; }
+  tbody tr:has(.flag) td:first-child, tbody tr:has(.flag) th:first-child { padding-left: 12px; }
 
-  aside .box { border: 1px solid var(--line); border-radius: 8px; padding: 17px 18px; margin-bottom: 18px; }
-  aside h4 { margin: 0 0 9px; font-size: 13px; letter-spacing: .05em; text-transform: uppercase; color: var(--ink-soft); }
+  /* --- Sidebar ---------------------------------------------------------- */
+  aside .box {
+    border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin-bottom: 18px;
+    background: var(--paper); box-shadow: var(--lift), var(--hair);
+  }
+  aside h4 { margin: 0 0 10px; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 700; }
   aside ul { margin: 0; padding-left: 17px; font-size: 14px; }
-  aside li { margin-bottom: 7px; }
-  aside .box.tint { background: var(--teal-soft); border-color: #c5dde3; }
+  aside li { margin-bottom: 8px; }
+  aside a { color: var(--teal); text-underline-offset: 2px; }
+  aside .box.tint {
+    background: linear-gradient(180deg, #f2f9fb, var(--teal-soft));
+    border-color: #cfe3e9; box-shadow: inset 3px 0 0 0 var(--teal), var(--lift);
+  }
   aside .box p { margin: 0 0 10px; font-size: 14px; }
   aside .box p:last-child { margin-bottom: 0; }
   aside .box.dark { background: #11242e; border-color: #11242e; color: #cfe0e6; }
@@ -121,37 +243,81 @@
   aside .kv div:last-child { border-bottom: 0; }
   aside .kv b { font-variant-numeric: tabular-nums; }
 
-  .alerts { border-top: 3px solid var(--deep); background: var(--surface); margin-top: 54px; }
-  .alerts .inner { max-width: 1060px; margin: 0 auto; padding: 38px 24px 44px; }
-  .alerts h2 { font-family: var(--serif); font-size: 25px; margin: 0 0 8px; }
-  .alerts .lede { color: var(--ink-soft); max-width: 60ch; margin: 0 0 24px; }
-  .fieldrow { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 18px 22px; max-width: 622px; }
+  /* --- Alerts sign-up ---------------------------------------------------
+     A dark band with the form on a raised card, the way a real utility puts
+     its one conversion moment on the page. The fields inside remain
+     unlabelled - see the note at the top of this stylesheet. */
+  .alerts {
+    margin-top: 60px;
+    background:
+      radial-gradient(90% 130% at 12% 0%, rgba(18, 135, 158, .28) 0%, transparent 62%),
+      linear-gradient(180deg, #0e3d4a, #0b2f3a);
+    color: #eaf3f6;
+  }
+  .alerts .inner { max-width: 1060px; margin: 0 auto; padding: 46px 24px 52px; }
+  .alerts h2 { font-family: var(--serif); font-size: 27px; margin: 0 0 10px; color: #fff; letter-spacing: -0.016em; }
+  .alerts .lede { color: #b9d2da; max-width: 60ch; margin: 0 0 26px; }
+  .alerts form {
+    background: var(--paper); color: var(--ink);
+    border-radius: 14px; padding: 26px 26px 28px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, .18), 0 22px 50px -18px rgba(0, 0, 0, .45);
+  }
+  .fieldrow { display: grid; grid-template-columns: repeat(2, minmax(0, 300px)); gap: 20px 24px; max-width: 624px; }
   @media (max-width: 680px) { .fieldrow { grid-template-columns: 1fr; } }
   .f { display: flex; flex-direction: column; gap: 5px; }
-  .f .cap { font-size: 13px; font-weight: 600; }
-  .f .hint { font-size: 12px; color: var(--ink-soft); }
+  .f .cap { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .f .hint { font-size: 12px; color: var(--ink-faint); }
   .f input {
-    font: inherit; font-size: 14px; padding: 9px 11px; border: 1px solid #a9b6bf;
-    border-radius: 6px; background: #fff; width: 100%;
+    font: inherit; font-size: 14px; padding: 10px 12px; border: 1px solid var(--line-strong);
+    border-radius: 8px; background: #fcfdfe; width: 100%; color: var(--ink);
+    transition: border-color var(--fast) var(--ease), box-shadow var(--fast) var(--ease), background var(--fast) var(--ease);
   }
-  .f input.bad { border-color: #a2401a; }
+  .f input:hover { border-color: #aebdc6; }
+  .f input:focus {
+    outline: none; background: var(--paper);
+    border-color: var(--teal-bright); box-shadow: 0 0 0 3px rgba(18, 135, 158, .16);
+  }
+  .f input.bad { border-color: #a2401a; background: var(--warn-soft); }
+  .f input.bad:focus { box-shadow: 0 0 0 3px rgba(162, 64, 26, .16); }
+
   .f.span2 { grid-column: 1 / -1; }
   .addrrow { display: flex; gap: 10px; }
   .addrrow #ad { flex: 1 1 auto; }
   .addrrow .apt { flex: 0 0 112px; width: 112px; }
-  .err { color: #8f3a14; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-top: 4px; }
-  .go { margin-top: 22px; background: var(--deep); color: #fff; border: 0; border-radius: 6px; font: inherit; font-size: 15px; padding: 11px 22px; cursor: pointer; }
-  .go:hover { background: #0a3946; }
-  .said { margin-top: 12px; font-size: 13.5px; color: var(--teal); }
 
-  footer.site { background: #11242e; color: #9fb4bd; font-size: 13.5px; }
-  footer.site .inner { max-width: 1060px; margin: 0 auto; padding: 32px 24px 40px; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 30px; }
-  @media (max-width: 720px) { footer.site .inner { grid-template-columns: 1fr; gap: 22px; } }
-  footer.site h5 { color: #fff; font-size: 12px; letter-spacing: .07em; text-transform: uppercase; margin: 0 0 10px; }
-  footer.site a { color: #cfe0e6; }
+  /* The apartment field, sized by .addrrow .apt above. It shares the Service
+     address caption visually and has no caption, hint, label or placeholder of
+     its own, so a sighted visitor infers "apt/unit" from the field beside it
+     and fills it in without a second thought - which is precisely the failure
+     Lucid is here to catch. Sitting it in the address row is what makes it read
+     as a shipped form rather than a stray box; it gives it no name. */
+  .err { color: #8f3a14; font-size: 12.5px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; margin-top: 5px; }
+  .go {
+    margin-top: 26px; background: linear-gradient(180deg, #10586b, var(--deep));
+    color: #fff; border: 0; border-radius: 9px; font: inherit; font-size: 15px; font-weight: 500;
+    padding: 12px 24px; cursor: pointer;
+    box-shadow: 0 1px 2px rgba(13, 40, 53, .3), inset 0 1px 0 rgba(255, 255, 255, .12);
+    transition: transform var(--fast) var(--ease), box-shadow var(--fast) var(--ease), filter var(--fast) var(--ease);
+  }
+  .go:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 6px 16px -4px rgba(13, 69, 83, .5); }
+  .go:active { transform: translateY(0) scale(.99); }
+  .said { margin-top: 14px; font-size: 13.5px; color: var(--teal); font-weight: 500; }
+
+  /* --- Footer ----------------------------------------------------------- */
+  footer.site { background: #0b1e27; color: #9fb4bd; font-size: 13.5px; }
+  footer.site .inner { max-width: 1060px; margin: 0 auto; padding: 38px 24px 42px; display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 34px; }
+  @media (max-width: 720px) { footer.site .inner { grid-template-columns: 1fr; gap: 24px; } }
+  footer.site h5 { color: #fff; font-size: 11.5px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px; }
+  footer.site a { color: #cfe0e6; text-underline-offset: 2px; }
+  footer.site a:hover { color: #fff; }
   footer.site ul { list-style: none; margin: 0; padding: 0; }
-  footer.site li { margin-bottom: 6px; }
-  .fine { max-width: 1060px; margin: 0 auto; padding: 0 24px 30px; font-size: 12px; color: #7b929c; }
+  footer.site li { margin-bottom: 7px; }
+  .fine { max-width: 1060px; margin: 0 auto; padding: 0 24px 32px; font-size: 12px; color: #6f858f; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+    .go:hover, .go:active { transform: none; }
+  }
 </style>
 </head>
 <body>

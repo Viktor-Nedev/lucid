@@ -176,21 +176,26 @@
   letter-spacing: -0.011em;
 }
 
-/* The lens: Lucid's mark, and a live status light. Grey at rest, aurora while
-   the model is working - so the mark itself tells you what is happening. */
+/* The lens: Lucid's mark, and a live status light. A ring around a pupil,
+   punched out with a mask so it stays crisp at any zoom and costs no request.
+   Grey at rest, a slowly turning aurora while the model is working - so the
+   mark itself tells you what is happening. */
 .title::before {
   content: "";
   float: inline-start;
-  width: 9px;
-  height: 9px;
-  margin-block-start: 0.44em;
+  width: 13px;
+  height: 13px;
+  margin-block-start: 0.32em;
   margin-inline-end: 9px;
   border-radius: 50%;
   background: var(--lucid-border-strong);
-  box-shadow: 0 0 0 3px var(--lucid-surface);
-  transition:
-    background var(--lucid-dur-3) var(--lucid-ease),
-    box-shadow var(--lucid-dur-3) var(--lucid-ease);
+  -webkit-mask: radial-gradient(
+    circle at 50% 50%,
+    #000 0 2.4px, transparent 2.4px 4px, #000 4px 6.5px, transparent 6.5px);
+          mask: radial-gradient(
+    circle at 50% 50%,
+    #000 0 2.4px, transparent 2.4px 4px, #000 4px 6.5px, transparent 6.5px);
+  transition: background var(--lucid-dur-3) var(--lucid-ease);
 }
 
 .close {
@@ -277,15 +282,19 @@
   to   { transform: scale(1);    opacity: 1; }
 }
 
-/* The mark in the header goes live. */
+/* The mark in the header goes live: the lens fills with the aurora and turns,
+   slowly enough to read as attention rather than as a spinner. */
 :host([aria-busy="true"]) .title::before {
-  background: var(--lucid-aurora-2);
-  animation: lucid-mark-breathe 2.4s var(--lucid-ease) infinite alternate;
+  background: conic-gradient(
+    from 200deg,
+    var(--lucid-aurora-1),
+    var(--lucid-aurora-2),
+    var(--lucid-aurora-3),
+    var(--lucid-aurora-1)
+  );
+  animation: lucid-mark-turn 4s linear infinite;
 }
-@keyframes lucid-mark-breathe {
-  from { box-shadow: 0 0 0 2px var(--lucid-accent-soft); }
-  to   { box-shadow: 0 0 0 5px transparent; }
-}
+@keyframes lucid-mark-turn { to { rotate: 1turn; } }
 
 /* Spectrum ray along the top edge. */
 .panel::before {
@@ -588,14 +597,19 @@ button.action:hover {
 }
 button.action:active { transform: translateY(0) scale(0.985); }
 
+/* A light-to-dark face and a hairline along the top edge: the difference
+   between a coloured rectangle and a button you want to press. */
 button.action.primary {
-  background: var(--lucid-accent);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #ffffff 14%, var(--lucid-accent)),
+    var(--lucid-accent)
+  );
   border-color: transparent;
-  box-shadow: 0 1px 2px rgba(16, 20, 32, 0.16), var(--lucid-hairline);
+  box-shadow: 0 1px 2px rgba(16, 20, 32, 0.18), var(--lucid-hairline);
 }
 button.action.primary:hover {
-  background: var(--lucid-accent);
-  box-shadow: 0 3px 10px -2px var(--lucid-accent-ring), var(--lucid-hairline);
+  box-shadow: 0 4px 14px -3px var(--lucid-accent-ring), var(--lucid-hairline);
 }
 
 /* Shortcut hints read as keycaps. */
