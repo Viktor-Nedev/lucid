@@ -366,9 +366,30 @@ to them. `manifest.json` has one owner; ask rather than editing it.
 | Simplify | working (`c25550b`) |
 | Chart data | working (`6b0a15c`) |
 | Explain | working (`71fe4ad`) |
+| Form fields | working (`01d3eb9`) |
+| Design system | landed (`5267cb7`) — `src/styles/` |
 | Reading Mode | in flight |
-| Form fields | still a stub — `ai.inferFieldPurpose` reports not implemented |
 | Voice | stub; `src/offscreen/` intentionally empty until Phase 7 |
 
-The foundation underneath all of it — contract, AI layer with both providers,
-panel, TTS, highlights, capture, settings and cache — is complete and in use.
+All four AI capabilities are implemented — every background handler is real and
+`not_implemented` no longer appears anywhere in `background/handlers/`.
+
+The foundation underneath — contract, AI layer with both providers, panel, TTS,
+highlights, capture, settings and cache — is complete and in use.
+
+### Wiring the design system
+
+`tokens.css` is deliberately duplicated into `panel.css` and `overlay.css`
+rather than imported: `new CSSStyleSheet().replace()` discards `@import`, and a
+shadow root cannot see `:root`. So the tokens travel with each shadow
+stylesheet, and adopting those two files is sufficient — do not try to adopt
+`tokens.css` separately.
+
+Three consumers, three different mechanisms:
+
+| Stylesheet | Consumed by | How |
+|---|---|---|
+| `panel.css` | panel shadow root | adopted automatically (`shared/theme.ts`) |
+| `overlay.css` | highlight shadow root | adopted automatically (`shared/theme.ts`) |
+| `options.css` | options page | `<link>` in `options.html` — ordinary document, not a shadow root |
+| `badge.css` | chart badge shadow root | **needs one line in `content/features/chart.ts`**: `adoptExternalStyles(root, 'badge.css')` after its built-in styles |

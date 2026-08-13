@@ -113,6 +113,14 @@
       .shortcuts li { display: flex; justify-content: space-between; gap: 16px; padding: 5px 0; }
       .shortcuts li + li { border-top: 1px solid var(--border); }
     </style>
+
+    <!--
+      Design-owned styling, last in <head> so it lands after the structural CSS
+      above and wins on equal specificity. Additive: if styles/options.css is
+      absent from a build, this 404s harmlessly and the page renders exactly as
+      it does without it.
+    -->
+    <link rel="stylesheet" href="styles/options.css" />
   </head>
   <body>
     <h1>Lucid settings</h1>
